@@ -11,7 +11,8 @@ COPY src ./src
 RUN mvn -B package -DskipTests -q
 
 # ── Etapa 2: Runtime ──────────────────────────────────────────────────────────
-FROM eclipse-temurin:17-jre-alpine
+# Usar jammy (Ubuntu 22.04) en vez de Alpine: tiene CA certs completos para SSL con Supabase
+FROM eclipse-temurin:17-jre-jammy
 WORKDIR /app
 
 # Copiar el JAR generado

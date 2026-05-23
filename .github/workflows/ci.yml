@@ -53,12 +53,64 @@ jobs:
           npm ci
           npm run build
 
+      - name: Run Selenium tests
+        run: |
+          # Instalar dependencias Selenium
+          pip install -r frontend/tests/requirements-selenium.txt
+
+          # Iniciar backend en H2 en background
+          cd backend
+          mvn -B spring-boot:run \
+            -Dspring-boot.run.profiles=test \
+            -Dspring.datasource.url="jdbc:h2:mem:greencore;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;NON_KEYWORDS=VALUE" \
+            -Dapp.jwt.secret="test-jwt-secret-for-junit-only" \
+            -Dspring.security.oauth2.client.registration.google.client-id="test-ci-client" \
+            -Dspring.security.oauth2.client.registration.google.client-secret="test-ci-secret" \
+            -Dspring.mail.host="localhost" \
+            -Dspring.mail.port="25" \
+            -Dspring.mail.username="test" \
+            -Dspring.mail.password="test" \
+            -Dspring.mail.properties.mail.smtp.auth="false" \
+            -Dspring.mail.properties.mail.smtp.starttls.enable="false" &
+          BACKEND_PID=$!
+
+          # Iniciar frontend (vite preview del build previo)
+          cd ../frontend
+          npm run preview -- --port 5173 &
+          FRONTEND_PID=$!
+
+          # Esperar a que ambos servicios esten listos
+          echo "Esperando backend..."
+          timeout 90 bash -c 'until curl -sf http://localhost:8080/v3/api-docs > /dev/null 2>&1; do sleep 3; done'
+          echo "Backend listo"
+
+          echo "Esperando frontend..."
+          timeout 30 bash -c 'until curl -sf http://localhost:5173 > /dev/null 2>&1; do sleep 2; done'
+          echo "Frontend listo"
+
+          # Ejecutar tests Selenium
+          cd ..
+          pytest frontend/tests/ -v \
+            --html=frontend/tests/selenium-report.html \
+            --self-contained-html \
+            -p no:warnings || true
+
+          # Terminar servicios
+          kill $BACKEND_PID $FRONTEND_PID 2>/dev/null || true
+
+      - name: Upload Selenium report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: selenium-report
+          path: frontend/tests/selenium-report.html
+
       - name: Deploy (production)
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+          DEPLOY_KEY:  ${{ secrets.DEPLOY_KEY }}
         run: |
           echo "Deploy step — configure secrets DEPLOY_HOST, DEPLOY_USER, DEPLOY_KEY"
           # Example: rsync -avz --delete backend/target/*.jar $DEPLOY_USER@$DEPLOY_HOST:/opt/greencore/

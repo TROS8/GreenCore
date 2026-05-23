@@ -1,0 +1,41 @@
+package {{ package }}.model;
+
+import jakarta.persistence.*;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Entity
+@Table(name = "{{ table_name }}")
+public class {{ class_name }} {
+
+{% for field in fields %}
+    {%- if field.primary_key %}@Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    {% endif -%}
+    {%- if field.is_relation %}
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "{{ field.join_column }}")
+    {% elif field.is_enum %}
+    @Enumerated(EnumType.STRING)
+    {% endif -%}
+    @Column(name = "{{ field.column_name }}"{% if not field.nullable %}, nullable = false{% endif %}{% if field.unique %}, unique = true{% endif %}{% if field.default_value is not none and not field.primary_key %}, columnDefinition = "{{ field.db_type }} DEFAULT '{{ field.default_value }}'"{% endif %})
+    private {{ field.java_type }} {{ field.field_name }};
+
+{% endfor %}
+
+    public {{ class_name }}() {
+    }
+
+{% for field in fields %}
+    public {{ field.java_type }} get{{ field.field_name|capitalize }}() {
+        return this.{{ field.field_name }};
+    }
+
+    public void set{{ field.field_name|capitalize }}({{ field.java_type }} {{ field.field_name }}) {
+        this.{{ field.field_name }} = {{ field.field_name }};
+    }
+
+{% endfor %}
+}

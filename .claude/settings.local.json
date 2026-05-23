@@ -1,0 +1,40 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Recurse \"c:\\\\Users\\\\crisp\\\\OneDrive\\\\Desktop\\\\AGRO\" -Depth 4)",
+      "Bash(Select-Object FullName, PSIsContainer)",
+      "Bash(Sort-Object PSIsContainer, FullName)",
+      "Bash(npm install *)",
+      "Bash(npm run *)",
+      "Bash(java -version)",
+      "Read(//c/Program Files/**)",
+      "Bash(find \"c:/Program Files\" -name \"java.exe\" 2>/dev/null | head -5; find \"c:/Users/crisp\" -name \"java.exe\" 2>/dev/null | head -5)",
+      "Read(//c/Users/crisp/**)",
+      "Bash(export JAVA_HOME=\"C:/Users/crisp/AppData/Local/Programs/Microsoft/jdk-17.0.10.7-hotspot\")",
+      "Bash(export PATH=\"$JAVA_HOME/bin:$PATH\")",
+      "Bash(export GOOGLE_CLIENT_ID=\"dummy\")",
+      "Bash(export GOOGLE_CLIENT_SECRET=\"dummy\")",
+      "Bash(export JWT_SECRET=\"secret\")",
+      "Bash(\"../.tools/maven/apache-maven-3.9.15/bin/mvn\" compile *)",
+      "Bash(export GMAIL_SMTP_USERNAME=\"dummy@gmail.com\")",
+      "Bash(export GMAIL_SMTP_PASSWORD=\"dummy\")",
+      "Bash(export SPRING_DATASOURCE_URL=\"jdbc:postgresql://localhost:5432/greencore\")",
+      "Bash(export SPRING_DATASOURCE_USERNAME=\"postgres\")",
+      "Bash(export SPRING_DATASOURCE_PASSWORD=\"1234\")",
+      "Bash(.venv\\\\Scripts\\\\python.exe greencore-generator/generate.py)",
+      "Bash(python greencore-generator/generate.py)",
+      "Bash(Get-ChildItem -Force)",
+      "Bash(Select-Object Name, PSIsContainer)",
+      "PowerShell(cd \"c:\\\\Users\\\\crisp\\\\OneDrive\\\\Desktop\\\\AGRO\" ; Get-ChildItem -Directory | Where-Object { $_.Name -notmatch '^\\\\.venv|^\\\\.tools|^node_modules' } | Select-Object Name)",
+      "PowerShell(ls -Recurse \"c:\\\\Users\\\\crisp\\\\OneDrive\\\\Desktop\\\\AGRO\\\\frontend\" -Directory -Force -ErrorAction SilentlyContinue | Where-Object { $_.Name -match '^\\(src|components|pages|__tests__|cypress\\)$' } | Select-Object FullName)",
+      "PowerShell(python --version 2>&1)",
+      "PowerShell(java -version 2>&1)",
+      "PowerShell(node --version 2>&1)",
+      "PowerShell(mvn --version 2>&1)",
+      "Bash(npm list *)",
+      "Bash(node gen_er.js)",
+      "Bash(npm root *)",
+      "Bash(NODE_PATH=\"C:\\\\Users\\\\crisp\\\\AppData\\\\Roaming\\\\npm\\\\node_modules\" node gen_er.js)"
+    ]
+  }
+}

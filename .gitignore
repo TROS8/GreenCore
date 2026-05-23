@@ -1,0 +1,11 @@
+start-backend.ps1
+*.env
+.env
+frontend/.env
+.venv/
+__pycache__/
+*.pyc
+backend/target/
+frontend/dist/
+frontend/node_modules/
+.tools/

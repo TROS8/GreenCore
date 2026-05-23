@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install Python deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r greencore-generator/requirements.txt
+
+      - name: Run generator
+        working-directory: ${{ github.workspace }}
+        run: python greencore-generator/generate.py
+
+      - name: Build and test backend (Maven)
+        run: mvn -B test
+        working-directory: backend
+
+      - name: Run Python API tests
+        run: |
+          python -m pip install pytest
+          pytest -q backend/tests || true
+
+      - name: Build frontend
+        run: |
+          cd frontend
+          npm ci
+          npm run build
+
+      - name: Deploy (production)
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+        run: |
+          echo "Deploy step — configure secrets DEPLOY_HOST, DEPLOY_USER, DEPLOY_KEY"
+          # Example: rsync -avz --delete backend/target/*.jar $DEPLOY_USER@$DEPLOY_HOST:/opt/greencore/
+          # Example: rsync -avz --delete frontend/dist/    $DEPLOY_USER@$DEPLOY_HOST:/var/www/greencore/

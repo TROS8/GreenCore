@@ -1,0 +1,1201 @@
+{
+  "project": {
+    "name": "GreenCore",
+    "description": "Sistema integral de gestion de invernadero",
+    "version": "1.0.0",
+    "base_package": "com.greencore",
+    "base_url": "/api/v1",
+    "database": "postgresql",
+    "languages": ["es", "en"]
+  },
+
+  "entities": [
+
+    {
+      "name": "Zona",
+      "table": "zonas",
+      "description": "Zona fisica del invernadero con condiciones controladas",
+      "endpoints": ["GET_ALL", "GET_BY_ID", "CREATE", "UPDATE", "DELETE"],
+      "generate_frontend": true,
+      "generate_tests": true,
+      "fields": [
+        {
+          "name": "id",
+          "type": "Long",
+          "db_type": "BIGSERIAL",
+          "primary_key": true,
+          "generated": true,
+          "show_in_form": false,
+          "show_in_table": true
+        },
+        {
+          "name": "nombre",
+          "type": "String",
+          "db_type": "VARCHAR(100)",
+          "nullable": false,
+          "unique": true,
+          "min_length": 2,
+          "max_length": 100,
+          "show_in_form": true,
+          "show_in_table": true,
+          "i18n_key": "zona.nombre",
+          "example": "Zona A - Tropicales"
+        },
+        {
+          "name": "descripcion",
+          "type": "String",
+          "db_type": "TEXT",
+          "nullable": true,
+          "max_length": 500,
+          "show_in_form": true,
+          "show_in_table": false,
+          "i18n_key": "zona.descripcion",
+          "example": "Zona dedicada a plantas tropicales de alta humedad"
+        },
+        {
+          "name": "capacidadMaxima",
+          "type": "Integer",
+          "db_type": "INTEGER",
+          "nullable": false,
+          "min": 1,
+          "max": 10000,
+          "show_in_form": true,
+          "show_in_table": true,
+          "i18n_key": "zona.capacidadMaxima",
+          "example": 200
+        },
+        {
+          "name": "temperaturaMinima",
+          "type": "Double",
+          "db_type": "DOUBLE PRECISION",
+          "nullable": false,
+          "min": -10.0,
+          "max": 50.0,
+          "show_in_form": true,
+          "show_in_table": true,
+          "i18n_key": "zona.temperaturaMinima",
+          "example": 18.0
+        },
+        {
+          "name": "temperaturaMaxima",
+          "type": "Double",
+          "db_type": "DOUBLE PRECISION",
+          "nullable": false,
+          "min": -10.0,
+          "max": 50.0,
+          "show_in_form": true,
+          "show_in_table": true,
+          "i18n_key": "zona.temperaturaMaxima",
+          "example": 30.0
+        },
+        {
+          "name": "humedadMinima",
+          "type": "Double",
+          "db_type": "DOUBLE PRECISION",
+          "nullable": false,
+          "min": 0.0,
+          "max": 100.0,
+          "show_in_form": true,
+          "show_in_table": true,
+          "i18n_key": "zona.humedadMinima",
+          "example": 60.0
+        },
+        {
+          "name": "humedadMaxima",
+          "type": "Double",
+          "db_type": "DOUBLE PRECISION",
+          "nullable": false,
+          "min": 0.0,
+          "max": 100.0,
+          "show_in_form": true,
+          "show_in_table": true,
+          "i18n_key": "zona.humedadMaxima",
+          "example": 85.0
+        },
+        {
+          "name": "activa",
+          "type": "Boolean",
+          "db_type": "BOOLEAN",
+          "nullable": false,
+          "default": true,
+          "show_in_form": true,
+          "show_in_table": true,
+          "i18n_key": "zona.activa",
+          "example": true
+        },
+        {
+          "name": "creadoEn",
+          "type": "LocalDateTime",
+          "db_type": "TIMESTAMP",
+          "nullable": false,
+          "auto_now": true,
+          "show_in_form": false,
+          "show_in_table": false
+        }
+      ],
+      "relations": [],
+      "acceptance_criteria": [
+        "Dado que existen zonas registradas, cuando solicito GET /api/v1/zonas, entonces recibo lista con status 200",
+        "Dado que envio datos validos, cuando hago POST /api/v1/zonas, entonces se crea zona con status 201",
+        "Dado que la zona no existe, cuando hago GET /api/v1/zonas/{id}, entonces recibo status 404"
+      ]
+    },
+
+    {
+      "name": "Usuario",
+      "table": "usuarios",
+      "description": "Usuario del sistema autenticado via OAuth2 Gmail",
+      "endpoints": ["GET_ALL", "GET_BY_ID", "UPDATE", "DELETE"],
+      "generate_frontend": true,
+      "generate_tests": true,
+      "fields": [
+        {
+          "name": "id",
+          "type": "Long",
+          "db_type": "BIGSERIAL",
+          "primary_key": true,
+          "generated": true,
+          "show_in_form": false,
+          "show_in_table": true
+        },
+        {
+          "name": "email",
+          "type": "String",
+          "db_type": "VARCHAR(255)",
+          "nullable": false,
+          "unique": true,
+          "format": "email",
+          "show_in_form": false,
+          "show_in_table": true,
+          "i18n_key": "usuario.email",
+          "example": "operario@gmail.com"
+        },
+        {
+          "name": "nombre",
+          "type": "String",
+          "db_type": "VARCHAR(150)",
+          "nullable": false,
+          "min_length": 2,
+          "max_length": 150,
+          "show_in_form": true,
+          "show_in_table": true,
+          "i18n_key": "usuario.nombre",
+          "example": "Carlos Perez"
+        },
+        {
+          "name": "fotoPerfil",
+          "type": "String",
+          "db_type": "TEXT",
+          "nullable": true,
+          "show_in_form": false,
+          "show_in_table": true,
+          "i18n_key": "usuario.fotoPerfil",
+          "example": "https://lh3.googleusercontent.com/photo.jpg"
+        },
+        {
+          "name": "rol",
+          "type": "Enum",
+          "db_type": "VARCHAR(30)",
+          "nullable": false,
+          "enum_values": ["ADMIN", "OPERARIO", "VISUALIZADOR"],
+          "default": "OPERARIO",
+          "show_in_form": true,
+          "show_in_table": true,
+          "i18n_key": "usuario.rol",
+          "example": "OPERARIO"
+        },
+        {
+          "name": "provider",
+          "type": "String",
+          "db_type": "VARCHAR(30)",
+          "nullable": false,
+          "default": "GOOGLE",
+          "show_in_form": false,
+          "show_in_table": false,
+          "i18n_key": "usuario.provider",
+          "example": "GOOGLE"
+        },
+        {
+          "name": "providerId",
+          "type": "String",
+          "db_type": "VARCHAR(255)",
+          "nullable": false,
+          "unique": true,
+          "show_in_form": false,
+          "show_in_table": false,
+          "example": "109876543210987654321"
+        },
+        {
+          "name": "activo",
+          "type": "Boolean",
+          "db_type": "BOOLEAN",
+          "nullable": false,
+          "default": true,
+          "show_in_form": true,
+          "show_in_table": true,
+          "i18n_key": "usuario.activo",
+          "example": true
+        },
+        {
+          "name": "ultimoAcceso",
+          "type": "LocalDateTime",
+          "db_type": "TIMESTAMP",
+          "nullable": true,
+          "show_in_form": false,
+          "show_in_table": true,
+          "i18n_key": "usuario.ultimoAcceso"
+        },
+        {
+          "name": "creadoEn",
+          "type": "LocalDateTime",
+          "db_type": "TIMESTAMP",
+          "nullable": false,
+          "auto_now": true,
+          "show_in_form": false,
+          "show_in_table": false
+        }
+      ],
+      "relations": [],
+      "acceptance_criteria": [
+        "Dado que el usuario se autentica con Gmail, cuando completa OAuth2, entonces se crea o actualiza automaticamente en BD",
+        "Dado que soy ADMIN, cuando cambio el rol de un usuario, entonces el cambio se refleja inmediatamente",
+        "Dado que un usuario no existe, cuando hago GET /api/v1/usuarios/{id}, entonces recibo status 404"
+      ]
+    },
+
+    {
+      "name": "Planta",
+      "table": "plantas",
+      "description": "Planta cultivada dentro del invernadero, trazable por lote",
+      "endpoints": ["GET_ALL", "GET_BY_ID", "CREATE", "UPDATE", "DELETE", "GET_BY_ZONA"],
+      "generate_frontend": true,
+      "generate_tests": true,
+      "fields": [
+        {
+          "name": "id",
+          "type": "Long",
+          "db_type": "BIGSERIAL",
+          "primary_key": true,
+          "generated": true,
+          "show_in_form": false,
+          "show_in_table": true
+        },
+        {
+          "name": "nombre",
+          "type": "String",
+          "db_type": "VARCHAR(150)",
+          "nullable": false,
+          "min_length": 2,
+          "max_length": 150,
+          "show_in_form": true,
+          "show_in_table": true,
+          "i18n_key": "planta.nombre",
+          "example": "Orquidea Phalaenopsis"
+        },
+        {
+          "name": "especie",
+          "type": "String",
+          "db_type": "VARCHAR(200)",
+          "nullable": false,
+          "min_length": 2,
+          "max_length": 200,
+          "show_in_form": true,
+          "show_in_table": true,
+          "i18n_key": "planta.especie",
+          "example": "Phalaenopsis amabilis"
+        },
+        {
+          "name": "lote",
+          "type": "String",
+          "db_type": "VARCHAR(50)",
+          "nullable": false,
+          "unique": true,
+          "show_in_form": false,
+          "show_in_table": true,
+          "i18n_key": "planta.lote",
+          "example": "LOT-2026-001",
+          "auto_generated": true,
+          "auto_generated_pattern": "LOT-{YEAR}-{SEQ}"
+        },
+        {
+          "name": "cantidad",
+          "type": "Integer",
+          "db_type": "INTEGER",
+          "nullable": false,
+          "min": 0,
+          "show_in_form": true,
+          "show_in_table": true,
+          "i18n_key": "planta.cantidad",
+          "example": 50
+        },
+        {
+          "name": "precio",
+          "type": "BigDecimal",
+          "db_type": "NUMERIC(10,2)",
+          "nullable": false,
+          "min": 0.0,
+          "show_in_form": true,
+          "show_in_table": true,
+          "i18n_key": "planta.precio",
+          "example": 35000.00
+        },
+        {
+          "name": "estado",
+          "type": "Enum",
+          "db_type": "VARCHAR(30)",
+          "nullable": false,
+          "enum_values": ["SEMILLA", "GERMINANDO", "CRECIMIENTO", "LISTA_VENTA", "VENDIDA", "BAJA"],
+          "default": "SEMILLA",
+          "show_in_form": true,
+          "show_in_table": true,
+          "i18n_key": "planta.estado",
+          "example": "CRECIMIENTO"
+        },
+        {
+          "name": "fechaSiembra",
+          "type": "LocalDate",
+          "db_type": "DATE",
+          "nullable": false,
+          "show_in_form": true,
+          "show_in_table": true,
+          "i18n_key": "planta.fechaSiembra",
+          "example": "2026-01-15"
+        },
+        {
+          "name": "fechaEstimadaVenta",
+          "type": "LocalDate",
+          "db_type": "DATE",
+          "nullable": true,
+          "show_in_form": true,
+          "show_in_table": true,
+          "i18n_key": "planta.fechaEstimadaVenta",
+          "example": "2026-06-01"
+        },
+        {
+          "name": "descripcion",
+          "type": "String",
+          "db_type": "TEXT",
+          "nullable": true,
+          "show_in_form": true,
+          "show_in_table": false,
+          "i18n_key": "planta.descripcion",
+          "example": "Variedad de alta demanda, requiere riego cada 3 dias"
+        },
+        {
+          "name": "imagenUrl",
+          "type": "String",
+          "db_type": "TEXT",
+          "nullable": true,
+          "show_in_form": true,
+          "show_in_table": true,
+          "i18n_key": "planta.imagenUrl"
+        },
+        {
+          "name": "zona",
+          "type": "Zona",
+          "db_type": "BIGINT",
+          "nullable": false,
+          "relation": "ManyToOne",
+          "join_column": "zona_id",
+          "show_in_form": true,
+          "show_in_table": true,
+          "i18n_key": "planta.zona"
+        },
+        {
+          "name": "creadoEn",
+          "type": "LocalDateTime",
+          "db_type": "TIMESTAMP",
+          "nullable": false,
+          "auto_now": true,
+          "show_in_form": false,
+          "show_in_table": false
+        }
+      ],
+      "relations": [
+        { "entity": "Zona", "type": "ManyToOne", "field": "zona" },
+        { "entity": "Venta", "type": "OneToMany", "mapped_by": "planta" }
+      ],
+      "acceptance_criteria": [
+        "Dado que la zona existe, cuando creo una planta con zona_id valido, entonces se guarda con status 201",
+        "Dado que hay plantas en zona 1, cuando hago GET /api/v1/plantas/zona/1, entonces recibo solo esas plantas",
+        "Dado que el stock es 0, cuando intento vender la planta, entonces recibo error 400 con mensaje claro"
+      ]
+    },
+
+    {
+      "name": "Sensor",
+      "table": "sensores",
+      "description": "Sensor fisico en una zona. Registra lecturas periodicas automaticamente",
+      "endpoints": ["GET_ALL", "GET_BY_ID", "CREATE", "UPDATE", "DELETE", "GET_BY_ZONA", "GET_ULTIMA_LECTURA"],
+      "generate_frontend": true,
+      "generate_tests": true,
+      "fields": [
+        {
+          "name": "id",
+          "type": "Long",
+          "db_type": "BIGSERIAL",
+          "primary_key": true,
+          "generated": true,
+          "show_in_form": false,
+          "show_in_table": true
+        },
+        {
+          "name": "codigo",
+          "type": "String",
+          "db_type": "VARCHAR(50)",
+          "nullable": false,
+          "unique": true,
+          "show_in_form": true,
+          "show_in_table": true,
+          "i18n_key": "sensor.codigo",
+          "example": "SNS-TEMP-001"
+        },
+        {
+          "name": "tipo",
+          "type": "Enum",
+          "db_type": "VARCHAR(30)",
+          "nullable": false,
+          "enum_values": ["TEMPERATURA", "HUMEDAD", "LUMINOSIDAD", "CO2", "PH_SUELO"],
+          "show_in_form": true,
+          "show_in_table": true,
+          "i18n_key": "sensor.tipo",
+          "example": "TEMPERATURA"
+        },
+        {
+          "name": "valorActual",
+          "type": "Double",
+          "db_type": "DOUBLE PRECISION",
+          "nullable": true,
+          "show_in_form": false,
+          "show_in_table": true,
+          "i18n_key": "sensor.valorActual",
+          "example": 24.5
+        },
+        {
+          "name": "unidad",
+          "type": "String",
+          "db_type": "VARCHAR(20)",
+          "nullable": false,
+          "show_in_form": true,
+          "show_in_table": true,
+          "i18n_key": "sensor.unidad",
+          "example": "°C"
+        },
+        {
+          "name": "umbralMinimo",
+          "type": "Double",
+          "db_type": "DOUBLE PRECISION",
+          "nullable": false,
+          "show_in_form": true,
+          "show_in_table": true,
+          "i18n_key": "sensor.umbralMinimo",
+          "example": 18.0
+        },
+        {
+          "name": "umbralMaximo",
+          "type": "Double",
+          "db_type": "DOUBLE PRECISION",
+          "nullable": false,
+          "show_in_form": true,
+          "show_in_table": true,
+          "i18n_key": "sensor.umbralMaximo",
+          "example": 30.0
+        },
+        {
+          "name": "estado",
+          "type": "Enum",
+          "db_type": "VARCHAR(20)",
+          "nullable": false,
+          "enum_values": ["ACTIVO", "INACTIVO", "FALLA", "CALIBRANDO"],
+          "default": "ACTIVO",
+          "show_in_form": true,
+          "show_in_table": true,
+          "i18n_key": "sensor.estado",
+          "example": "ACTIVO"
+        },
+        {
+          "name": "ultimaLectura",
+          "type": "LocalDateTime",
+          "db_type": "TIMESTAMP",
+          "nullable": true,
+          "show_in_form": false,
+          "show_in_table": true,
+          "i18n_key": "sensor.ultimaLectura"
+        },
+        {
+          "name": "zona",
+          "type": "Zona",
+          "db_type": "BIGINT",
+          "nullable": false,
+          "relation": "ManyToOne",
+          "join_column": "zona_id",
+          "show_in_form": true,
+          "show_in_table": true,
+          "i18n_key": "sensor.zona"
+        },
+        {
+          "name": "creadoEn",
+          "type": "LocalDateTime",
+          "db_type": "TIMESTAMP",
+          "nullable": false,
+          "auto_now": true,
+          "show_in_form": false,
+          "show_in_table": false
+        }
+      ],
+      "relations": [
+        { "entity": "Zona", "type": "ManyToOne", "field": "zona" },
+        { "entity": "Alerta", "type": "OneToMany", "mapped_by": "sensor" },
+        { "entity": "LecturaSensor", "type": "OneToMany", "mapped_by": "sensor" }
+      ],
+      "acceptance_criteria": [
+        "Dado que el valor supera el umbral, cuando se registra lectura, entonces se genera alerta automaticamente",
+        "Dado que solicito la ultima lectura, cuando hago GET /api/v1/sensores/{id}/ultima-lectura, entonces recibo el valor mas reciente",
+        "Dado que el sensor esta en FALLA, cuando intento registrar lectura, entonces recibo error 409"
+      ]
+    },
+
+    {
+      "name": "LecturaSensor",
+      "table": "lecturas_sensor",
+      "description": "Registro historico de lecturas de un sensor. Se inserta automaticamente",
+      "endpoints": ["GET_ALL", "GET_BY_SENSOR", "CREATE"],
+      "generate_frontend": false,
+      "generate_tests": true,
+      "fields": [
+        {
+          "name": "id",
+          "type": "Long",
+          "db_type": "BIGSERIAL",
+          "primary_key": true,
+          "generated": true,
+          "show_in_form": false,
+          "show_in_table": true
+        },
+        {
+          "name": "valor",
+          "type": "Double",
+          "db_type": "DOUBLE PRECISION",
+          "nullable": false,
+          "show_in_form": true,
+          "show_in_table": true,
+          "i18n_key": "lectura.valor",
+          "example": 24.8
+        },
+        {
+          "name": "fueraDeRango",
+          "type": "Boolean",
+          "db_type": "BOOLEAN",
+          "nullable": false,
+          "default": false,
+          "show_in_form": false,
+          "show_in_table": true,
+          "i18n_key": "lectura.fueraDeRango",
+          "example": false
+        },
+        {
+          "name": "timestamp",
+          "type": "LocalDateTime",
+          "db_type": "TIMESTAMP",
+          "nullable": false,
+          "auto_now": true,
+          "show_in_form": false,
+          "show_in_table": true,
+          "i18n_key": "lectura.timestamp"
+        },
+        {
+          "name": "sensor",
+          "type": "Sensor",
+          "db_type": "BIGINT",
+          "nullable": false,
+          "relation": "ManyToOne",
+          "join_column": "sensor_id",
+          "show_in_form": true,
+          "show_in_table": true,
+          "i18n_key": "lectura.sensor"
+        }
+      ],
+      "relations": [
+        { "entity": "Sensor", "type": "ManyToOne", "field": "sensor" }
+      ],
+      "acceptance_criteria": [
+        "Dado que el sensor existe, cuando registro una lectura, entonces se guarda con timestamp automatico",
+        "Dado que el valor supera umbral, cuando se guarda lectura, entonces fueraDeRango = true y se crea alerta"
+      ]
+    },
+
+    {
+      "name": "Alerta",
+      "table": "alertas",
+      "description": "Alerta generada automaticamente cuando un sensor sale de rango. Dispara correo Gmail",
+      "endpoints": ["GET_ALL", "GET_BY_ID", "GET_NO_LEIDAS", "MARCAR_LEIDA", "DELETE"],
+      "generate_frontend": true,
+      "generate_tests": true,
+      "fields": [
+        {
+          "name": "id",
+          "type": "Long",
+          "db_type": "BIGSERIAL",
+          "primary_key": true,
+          "generated": true,
+          "show_in_form": false,
+          "show_in_table": true
+        },
+        {
+          "name": "mensaje",
+          "type": "String",
+          "db_type": "TEXT",
+          "nullable": false,
+          "show_in_form": false,
+          "show_in_table": true,
+          "i18n_key": "alerta.mensaje",
+          "example": "Temperatura en Zona A supero el umbral maximo (31.2°C > 30.0°C)"
+        },
+        {
+          "name": "nivel",
+          "type": "Enum",
+          "db_type": "VARCHAR(20)",
+          "nullable": false,
+          "enum_values": ["INFO", "ADVERTENCIA", "CRITICO"],
+          "default": "ADVERTENCIA",
+          "show_in_form": false,
+          "show_in_table": true,
+          "i18n_key": "alerta.nivel",
+          "example": "CRITICO"
+        },
+        {
+          "name": "leida",
+          "type": "Boolean",
+          "db_type": "BOOLEAN",
+          "nullable": false,
+          "default": false,
+          "show_in_form": false,
+          "show_in_table": true,
+          "i18n_key": "alerta.leida",
+          "example": false
+        },
+        {
+          "name": "correoEnviado",
+          "type": "Boolean",
+          "db_type": "BOOLEAN",
+          "nullable": false,
+          "default": false,
+          "show_in_form": false,
+          "show_in_table": false,
+          "example": true
+        },
+        {
+          "name": "valorRegistrado",
+          "type": "Double",
+          "db_type": "DOUBLE PRECISION",
+          "nullable": false,
+          "show_in_form": false,
+          "show_in_table": true,
+          "i18n_key": "alerta.valorRegistrado",
+          "example": 31.2
+        },
+        {
+          "name": "timestamp",
+          "type": "LocalDateTime",
+          "db_type": "TIMESTAMP",
+          "nullable": false,
+          "auto_now": true,
+          "show_in_form": false,
+          "show_in_table": true,
+          "i18n_key": "alerta.timestamp"
+        },
+        {
+          "name": "sensor",
+          "type": "Sensor",
+          "db_type": "BIGINT",
+          "nullable": false,
+          "relation": "ManyToOne",
+          "join_column": "sensor_id",
+          "show_in_form": false,
+          "show_in_table": true,
+          "i18n_key": "alerta.sensor"
+        }
+      ],
+      "relations": [
+        { "entity": "Sensor", "type": "ManyToOne", "field": "sensor" }
+      ],
+      "acceptance_criteria": [
+        "Dado que un sensor sale de rango, cuando se registra la lectura, entonces se crea alerta automaticamente",
+        "Dado que la alerta es CRITICO, cuando se crea, entonces se envia correo Gmail automaticamente",
+        "Dado que marco alerta como leida, cuando hago PATCH /api/v1/alertas/{id}/leer, entonces leida = true"
+      ]
+    },
+
+    {
+      "name": "Cliente",
+      "table": "clientes",
+      "description": "Cliente comprador de plantas del invernadero",
+      "endpoints": ["GET_ALL", "GET_BY_ID", "CREATE", "UPDATE", "DELETE"],
+      "generate_frontend": true,
+      "generate_tests": true,
+      "fields": [
+        {
+          "name": "id",
+          "type": "Long",
+          "db_type": "BIGSERIAL",
+          "primary_key": true,
+          "generated": true,
+          "show_in_form": false,
+          "show_in_table": true
+        },
+        {
+          "name": "nombre",
+          "type": "String",
+          "db_type": "VARCHAR(150)",
+          "nullable": false,
+          "min_length": 2,
+          "max_length": 150,
+          "show_in_form": true,
+          "show_in_table": true,
+          "i18n_key": "cliente.nombre",
+          "example": "Vivero El Rosal"
+        },
+        {
+          "name": "email",
+          "type": "String",
+          "db_type": "VARCHAR(255)",
+          "nullable": false,
+          "unique": true,
+          "format": "email",
+          "show_in_form": true,
+          "show_in_table": true,
+          "i18n_key": "cliente.email",
+          "example": "compras@elrosal.com"
+        },
+        {
+          "name": "telefono",
+          "type": "String",
+          "db_type": "VARCHAR(20)",
+          "nullable": true,
+          "show_in_form": true,
+          "show_in_table": true,
+          "i18n_key": "cliente.telefono",
+          "example": "+57 310 555 1234"
+        },
+        {
+          "name": "ciudad",
+          "type": "String",
+          "db_type": "VARCHAR(100)",
+          "nullable": true,
+          "show_in_form": true,
+          "show_in_table": true,
+          "i18n_key": "cliente.ciudad",
+          "example": "Neiva"
+        },
+        {
+          "name": "activo",
+          "type": "Boolean",
+          "db_type": "BOOLEAN",
+          "nullable": false,
+          "default": true,
+          "show_in_form": true,
+          "show_in_table": true,
+          "i18n_key": "cliente.activo",
+          "example": true
+        },
+        {
+          "name": "creadoEn",
+          "type": "LocalDateTime",
+          "db_type": "TIMESTAMP",
+          "nullable": false,
+          "auto_now": true,
+          "show_in_form": false,
+          "show_in_table": false
+        }
+      ],
+      "relations": [
+        { "entity": "Venta", "type": "OneToMany", "mapped_by": "cliente" }
+      ],
+      "acceptance_criteria": [
+        "Dado que el email ya existe, cuando creo cliente con mismo email, entonces recibo error 409",
+        "Dado que el cliente tiene ventas, cuando intento eliminarlo, entonces recibo error 400",
+        "Dado que clientes existen, cuando hago GET /api/v1/clientes, entonces recibo lista paginada"
+      ]
+    },
+
+    {
+      "name": "Venta",
+      "table": "ventas",
+      "description": "Registro de venta de plantas a un cliente. Descuenta stock automaticamente",
+      "endpoints": ["GET_ALL", "GET_BY_ID", "CREATE", "GET_BY_CLIENTE", "GET_BY_FECHA"],
+      "generate_frontend": true,
+      "generate_tests": true,
+      "fields": [
+        {
+          "name": "id",
+          "type": "Long",
+          "db_type": "BIGSERIAL",
+          "primary_key": true,
+          "generated": true,
+          "show_in_form": false,
+          "show_in_table": true
+        },
+        {
+          "name": "numeroFactura",
+          "type": "String",
+          "db_type": "VARCHAR(30)",
+          "nullable": false,
+          "unique": true,
+          "show_in_form": false,
+          "show_in_table": true,
+          "i18n_key": "venta.numeroFactura",
+          "example": "FAC-2026-0042",
+          "auto_generated": true,
+          "auto_generated_pattern": "FAC-{YEAR}-{SEQ}"
+        },
+        {
+          "name": "cantidad",
+          "type": "Integer",
+          "db_type": "INTEGER",
+          "nullable": false,
+          "min": 1,
+          "show_in_form": true,
+          "show_in_table": true,
+          "i18n_key": "venta.cantidad",
+          "example": 10
+        },
+        {
+          "name": "precioUnitario",
+          "type": "BigDecimal",
+          "db_type": "NUMERIC(10,2)",
+          "nullable": false,
+          "min": 0.0,
+          "show_in_form": false,
+          "show_in_table": true,
+          "i18n_key": "venta.precioUnitario",
+          "example": 35000.00
+        },
+        {
+          "name": "total",
+          "type": "BigDecimal",
+          "db_type": "NUMERIC(12,2)",
+          "nullable": false,
+          "show_in_form": false,
+          "show_in_table": true,
+          "i18n_key": "venta.total",
+          "example": 350000.00,
+          "computed": true,
+          "computed_formula": "cantidad * precioUnitario"
+        },
+        {
+          "name": "estado",
+          "type": "Enum",
+          "db_type": "VARCHAR(20)",
+          "nullable": false,
+          "enum_values": ["PENDIENTE", "COMPLETADA", "ANULADA"],
+          "default": "PENDIENTE",
+          "show_in_form": false,
+          "show_in_table": true,
+          "i18n_key": "venta.estado",
+          "example": "COMPLETADA"
+        },
+        {
+          "name": "notas",
+          "type": "String",
+          "db_type": "TEXT",
+          "nullable": true,
+          "show_in_form": true,
+          "show_in_table": false,
+          "i18n_key": "venta.notas",
+          "example": "Entrega programada para el viernes"
+        },
+        {
+          "name": "fecha",
+          "type": "LocalDateTime",
+          "db_type": "TIMESTAMP",
+          "nullable": false,
+          "auto_now": true,
+          "show_in_form": false,
+          "show_in_table": true,
+          "i18n_key": "venta.fecha"
+        },
+        {
+          "name": "planta",
+          "type": "Planta",
+          "db_type": "BIGINT",
+          "nullable": false,
+          "relation": "ManyToOne",
+          "join_column": "planta_id",
+          "show_in_form": true,
+          "show_in_table": true,
+          "i18n_key": "venta.planta"
+        },
+        {
+          "name": "cliente",
+          "type": "Cliente",
+          "db_type": "BIGINT",
+          "nullable": false,
+          "relation": "ManyToOne",
+          "join_column": "cliente_id",
+          "show_in_form": true,
+          "show_in_table": true,
+          "i18n_key": "venta.cliente"
+        },
+        {
+          "name": "registradoPor",
+          "type": "Usuario",
+          "db_type": "BIGINT",
+          "nullable": false,
+          "relation": "ManyToOne",
+          "join_column": "usuario_id",
+          "show_in_form": false,
+          "show_in_table": true,
+          "i18n_key": "venta.registradoPor"
+        }
+      ],
+      "relations": [
+        { "entity": "Planta", "type": "ManyToOne", "field": "planta" },
+        { "entity": "Cliente", "type": "ManyToOne", "field": "cliente" },
+        { "entity": "Usuario", "type": "ManyToOne", "field": "registradoPor" }
+      ],
+      "acceptance_criteria": [
+        "Dado que el stock es suficiente, cuando creo venta, entonces stock se descuenta automaticamente",
+        "Dado que el stock es insuficiente, cuando creo venta, entonces recibo error 400 con mensaje de stock",
+        "Dado que la venta existe, cuando la anulo, entonces el stock se restaura automaticamente",
+        "Dado que solicito ventas por fecha, cuando hago GET /api/v1/ventas?from=2026-01-01&to=2026-01-31, entonces recibo solo esas ventas"
+      ]
+    }
+
+  ],
+
+  "security": {
+    "provider": "oauth2_google",
+    "jwt_secret_env": "JWT_SECRET",
+    "jwt_expiration_hours": 8,
+    "roles": ["ADMIN", "OPERARIO", "VISUALIZADOR"],
+    "gmail_notifications": true,
+    "gmail_notify_on": ["ALERTA_CRITICO", "VENTA_COMPLETADA"],
+    "public_endpoints": ["/api/v1/auth/**", "/swagger-ui/**", "/v3/api-docs/**"]
+  },
+
+  "automation": {
+    "sensor_polling_cron": "0 */5 * * * *",
+    "reporte_diario_cron": "0 0 7 * * *",
+    "stock_minimo_alerta": 5,
+    "auto_baja_planta_dias": 180
+  },
+
+  "i18n": {
+    "default_locale": "es",
+    "supported_locales": ["es", "en"],
+    "backend_file": "messages_{locale}.properties",
+    "frontend_file": "src/i18n/locales/{locale}.json"
+  },
+
+  "ci_cd": {
+    "platform": "github_actions",
+    "trigger_on": ["push", "pull_request"],
+    "branches": ["main", "develop"],
+    "steps": ["generate", "build_backend", "test_backend", "build_frontend", "test_api", "deploy"]
+  },
+
+  "documentation": {
+    "openapi_path": "/swagger-ui/index.html",
+    "javadoc_output": "docs/javadoc",
+    "generate_data_dictionary": true,
+    "data_dictionary_output": "docs/diccionario_datos.md"
+  },
+
+  "seed_data": {
+    "zonas": [
+      {
+        "nombre": "Zona A - Tropicales",
+        "descripcion": "Zona dedicada a plantas tropicales de alta humedad",
+        "capacidadMaxima": 200,
+        "temperaturaMinima": 18.0,
+        "temperaturaMaxima": 30.0,
+        "humedadMinima": 60.0,
+        "humedadMaxima": 85.0,
+        "activa": true
+      },
+      {
+        "nombre": "Zona B - Suculentas",
+        "descripcion": "Zona de baja humedad para cactus y suculentas",
+        "capacidadMaxima": 150,
+        "temperaturaMinima": 20.0,
+        "temperaturaMaxima": 35.0,
+        "humedadMinima": 30.0,
+        "humedadMaxima": 55.0,
+        "activa": true
+      },
+      {
+        "nombre": "Zona C - Aromaticas",
+        "descripcion": "Zona de plantas aromaticas y medicinales",
+        "capacidadMaxima": 100,
+        "temperaturaMinima": 15.0,
+        "temperaturaMaxima": 25.0,
+        "humedadMinima": 50.0,
+        "humedadMaxima": 70.0,
+        "activa": true
+      }
+    ],
+    "clientes": [
+      {
+        "nombre": "Vivero El Rosal",
+        "email": "compras@elrosal.com",
+        "telefono": "+57 310 555 1234",
+        "ciudad": "Neiva",
+        "activo": true
+      },
+      {
+        "nombre": "Flores del Valle",
+        "email": "contacto@floresdelvalle.com",
+        "telefono": "+57 314 222 5678",
+        "ciudad": "Bogota",
+        "activo": true
+      },
+      {
+        "nombre": "Jardines Verdes",
+        "email": "ventas@jardinesverdes.com",
+        "telefono": "+57 300 888 9012",
+        "ciudad": "Medellin",
+        "activo": true
+      }
+    ],
+    "sensores": [
+      {
+        "codigo": "SNS-TEMP-001",
+        "tipo": "TEMPERATURA",
+        "valorActual": 24.5,
+        "unidad": "C",
+        "umbralMinimo": 18.0,
+        "umbralMaximo": 30.0,
+        "estado": "ACTIVO",
+        "zona_ref": "Zona A - Tropicales"
+      },
+      {
+        "codigo": "SNS-HUM-001",
+        "tipo": "HUMEDAD",
+        "valorActual": 72.3,
+        "unidad": "%",
+        "umbralMinimo": 60.0,
+        "umbralMaximo": 85.0,
+        "estado": "ACTIVO",
+        "zona_ref": "Zona A - Tropicales"
+      },
+      {
+        "codigo": "SNS-TEMP-002",
+        "tipo": "TEMPERATURA",
+        "valorActual": 28.1,
+        "unidad": "C",
+        "umbralMinimo": 20.0,
+        "umbralMaximo": 35.0,
+        "estado": "ACTIVO",
+        "zona_ref": "Zona B - Suculentas"
+      },
+      {
+        "codigo": "SNS-HUM-002",
+        "tipo": "HUMEDAD",
+        "valorActual": 42.0,
+        "unidad": "%",
+        "umbralMinimo": 30.0,
+        "umbralMaximo": 55.0,
+        "estado": "ACTIVO",
+        "zona_ref": "Zona B - Suculentas"
+      },
+      {
+        "codigo": "SNS-TEMP-003",
+        "tipo": "TEMPERATURA",
+        "valorActual": 21.0,
+        "unidad": "C",
+        "umbralMinimo": 15.0,
+        "umbralMaximo": 25.0,
+        "estado": "ACTIVO",
+        "zona_ref": "Zona C - Aromaticas"
+      },
+      {
+        "codigo": "SNS-LUZ-001",
+        "tipo": "LUMINOSIDAD",
+        "valorActual": 3200.0,
+        "unidad": "lux",
+        "umbralMinimo": 1000.0,
+        "umbralMaximo": 5000.0,
+        "estado": "ACTIVO",
+        "zona_ref": "Zona C - Aromaticas"
+      }
+    ],
+    "plantas": [
+      {
+        "nombre": "Orquidea Phalaenopsis",
+        "especie": "Phalaenopsis amabilis",
+        "lote": "LOT-2026-001",
+        "cantidad": 50,
+        "precio": "35000.00",
+        "estado": "CRECIMIENTO",
+        "fechaSiembra": "2026-01-15",
+        "fechaEstimadaVenta": "2026-06-01",
+        "descripcion": "Variedad de alta demanda, requiere riego cada 3 dias",
+        "zona_ref": "Zona A - Tropicales"
+      },
+      {
+        "nombre": "Bromelia Imperial",
+        "especie": "Aechmea fasciata",
+        "lote": "LOT-2026-002",
+        "cantidad": 30,
+        "precio": "28000.00",
+        "estado": "LISTA_VENTA",
+        "fechaSiembra": "2025-10-01",
+        "fechaEstimadaVenta": "2026-02-01",
+        "descripcion": "Lista para comercializar, alta rotacion",
+        "zona_ref": "Zona A - Tropicales"
+      },
+      {
+        "nombre": "Cactus Saguaro",
+        "especie": "Carnegiea gigantea",
+        "lote": "LOT-2026-003",
+        "cantidad": 100,
+        "precio": "15000.00",
+        "estado": "GERMINANDO",
+        "fechaSiembra": "2026-03-01",
+        "fechaEstimadaVenta": "2026-12-01",
+        "descripcion": "Cactus de crecimiento lento, bajo mantenimiento",
+        "zona_ref": "Zona B - Suculentas"
+      },
+      {
+        "nombre": "Lavanda Vera",
+        "especie": "Lavandula angustifolia",
+        "lote": "LOT-2026-004",
+        "cantidad": 80,
+        "precio": "12000.00",
+        "estado": "CRECIMIENTO",
+        "fechaSiembra": "2026-02-01",
+        "fechaEstimadaVenta": "2026-07-01",
+        "descripcion": "Aromatica de alta demanda en mercado local",
+        "zona_ref": "Zona C - Aromaticas"
+      }
+    ],
+    "lecturas_sensor": [
+      {"valor": 24.5, "fueraDeRango": false, "sensor_ref": "SNS-TEMP-001"},
+      {"valor": 25.1, "fueraDeRango": false, "sensor_ref": "SNS-TEMP-001"},
+      {"valor": 72.3, "fueraDeRango": false, "sensor_ref": "SNS-HUM-001"},
+      {"valor": 28.1, "fueraDeRango": false, "sensor_ref": "SNS-TEMP-002"},
+      {"valor": 42.0, "fueraDeRango": false, "sensor_ref": "SNS-HUM-002"},
+      {"valor": 31.2, "fueraDeRango": true,  "sensor_ref": "SNS-TEMP-001"},
+      {"valor": 21.0, "fueraDeRango": false, "sensor_ref": "SNS-TEMP-003"},
+      {"valor": 3200.0, "fueraDeRango": false, "sensor_ref": "SNS-LUZ-001"}
+    ],
+    "alertas": [
+      {
+        "mensaje": "Temperatura en Zona A supero el umbral maximo (31.2 > 30.0)",
+        "nivel": "CRITICO",
+        "valorRegistrado": 31.2,
+        "leida": false,
+        "correoEnviado": true,
+        "sensor_ref": "SNS-TEMP-001"
+      },
+      {
+        "mensaje": "Humedad en Zona B por debajo del umbral minimo (27.0 < 30.0)",
+        "nivel": "ADVERTENCIA",
+        "valorRegistrado": 27.0,
+        "leida": false,
+        "correoEnviado": false,
+        "sensor_ref": "SNS-HUM-002"
+      }
+    ]
+  }
+}

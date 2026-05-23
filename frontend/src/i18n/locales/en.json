@@ -1,0 +1,111 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "yes": "Yes",
+    "no": "No",
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "zonas": "Zones",
+    "plantas": "Plants",
+    "sensores": "Sensors",
+    "alertas": "Alerts",
+    "clientes": "Clients",
+    "ventas": "Sales",
+    "usuarios": "Users",
+    "logout": "Log out",
+    "login": "Sign in with Google"
+  },
+  "zona": {
+    "title": "Zones",
+    "nombre": "Name",
+    "descripcion": "Description",
+    "capacidadMaxima": "Max capacity",
+    "temperaturaMinima": "Min temperature",
+    "temperaturaMaxima": "Max temperature",
+    "humedadMinima": "Min humidity",
+    "humedadMaxima": "Max humidity",
+    "activa": "Active"
+  },
+  "usuario": {
+    "title": "Users",
+    "email": "Email",
+    "nombre": "Name",
+    "fotoPerfil": "Profile picture",
+    "rol": "Role",
+    "provider": "Provider",
+    "activo": "Active",
+    "ultimoAcceso": "Last access"
+  },
+  "planta": {
+    "title": "Plants",
+    "nombre": "Name",
+    "especie": "Species",
+    "lote": "Batch",
+    "cantidad": "Quantity",
+    "precio": "Price",
+    "estado": "Status",
+    "fechaSiembra": "Sowing date",
+    "fechaEstimadaVenta": "Estimated sale date",
+    "descripcion": "Description",
+    "imagenUrl": "Image",
+    "zona": "Zone"
+  },
+  "sensor": {
+    "title": "Sensors",
+    "codigo": "Code",
+    "tipo": "Type",
+    "valorActual": "Current value",
+    "unidad": "Unit",
+    "umbralMinimo": "Min threshold",
+    "umbralMaximo": "Max threshold",
+    "estado": "Status",
+    "ultimaLectura": "Last reading",
+    "zona": "Zone"
+  },
+  "lectura": {
+    "title": "Readings",
+    "valor": "Value",
+    "fueraDeRango": "Out of range",
+    "timestamp": "Timestamp",
+    "sensor": "Sensor"
+  },
+  "alerta": {
+    "title": "Alerts",
+    "mensaje": "Message",
+    "nivel": "Level",
+    "leida": "Read",
+    "valorRegistrado": "Recorded value",
+    "timestamp": "Timestamp",
+    "sensor": "Sensor"
+  },
+  "cliente": {
+    "title": "Clients",
+    "nombre": "Name",
+    "email": "Email",
+    "telefono": "Phone",
+    "ciudad": "City",
+    "activo": "Active"
+  },
+  "venta": {
+    "title": "Sales",
+    "numeroFactura": "Invoice No.",
+    "cantidad": "Quantity",
+    "precioUnitario": "Unit price",
+    "total": "Total",
+    "estado": "Status",
+    "notas": "Notes",
+    "fecha": "Date",
+    "planta": "Plant",
+    "cliente": "Client",
+    "registradoPor": "Registered by"
+  }
+}

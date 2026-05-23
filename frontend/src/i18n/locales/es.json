@@ -1,0 +1,111 @@
+{
+  "common": {
+    "loading": "Cargando...",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "create": "Crear",
+    "search": "Buscar",
+    "yes": "Sí",
+    "no": "No",
+    "active": "Activo",
+    "inactive": "Inactivo"
+  },
+  "nav": {
+    "dashboard": "Panel",
+    "zonas": "Zonas",
+    "plantas": "Plantas",
+    "sensores": "Sensores",
+    "alertas": "Alertas",
+    "clientes": "Clientes",
+    "ventas": "Ventas",
+    "usuarios": "Usuarios",
+    "logout": "Cerrar sesión",
+    "login": "Iniciar sesión con Google"
+  },
+  "zona": {
+    "title": "Zonas",
+    "nombre": "Nombre",
+    "descripcion": "Descripción",
+    "capacidadMaxima": "Capacidad máxima",
+    "temperaturaMinima": "Temperatura mín.",
+    "temperaturaMaxima": "Temperatura máx.",
+    "humedadMinima": "Humedad mín.",
+    "humedadMaxima": "Humedad máx.",
+    "activa": "Activa"
+  },
+  "usuario": {
+    "title": "Usuarios",
+    "email": "Correo electrónico",
+    "nombre": "Nombre",
+    "fotoPerfil": "Foto de perfil",
+    "rol": "Rol",
+    "provider": "Proveedor",
+    "activo": "Activo",
+    "ultimoAcceso": "Último acceso"
+  },
+  "planta": {
+    "title": "Plantas",
+    "nombre": "Nombre",
+    "especie": "Especie",
+    "lote": "Lote",
+    "cantidad": "Cantidad",
+    "precio": "Precio",
+    "estado": "Estado",
+    "fechaSiembra": "Fecha de siembra",
+    "fechaEstimadaVenta": "Fecha estimada de venta",
+    "descripcion": "Descripción",
+    "imagenUrl": "Imagen",
+    "zona": "Zona"
+  },
+  "sensor": {
+    "title": "Sensores",
+    "codigo": "Código",
+    "tipo": "Tipo",
+    "valorActual": "Valor actual",
+    "unidad": "Unidad",
+    "umbralMinimo": "Umbral mín.",
+    "umbralMaximo": "Umbral máx.",
+    "estado": "Estado",
+    "ultimaLectura": "Última lectura",
+    "zona": "Zona"
+  },
+  "lectura": {
+    "title": "Lecturas",
+    "valor": "Valor",
+    "fueraDeRango": "Fuera de rango",
+    "timestamp": "Fecha/hora",
+    "sensor": "Sensor"
+  },
+  "alerta": {
+    "title": "Alertas",
+    "mensaje": "Mensaje",
+    "nivel": "Nivel",
+    "leida": "Leída",
+    "valorRegistrado": "Valor registrado",
+    "timestamp": "Fecha/hora",
+    "sensor": "Sensor"
+  },
+  "cliente": {
+    "title": "Clientes",
+    "nombre": "Nombre",
+    "email": "Correo electrónico",
+    "telefono": "Teléfono",
+    "ciudad": "Ciudad",
+    "activo": "Activo"
+  },
+  "venta": {
+    "title": "Ventas",
+    "numeroFactura": "N° Factura",
+    "cantidad": "Cantidad",
+    "precioUnitario": "Precio unitario",
+    "total": "Total",
+    "estado": "Estado",
+    "notas": "Notas",
+    "fecha": "Fecha",
+    "planta": "Planta",
+    "cliente": "Cliente",
+    "registradoPor": "Registrado por"
+  }
+}

@@ -1,0 +1,145 @@
+{
+  "info": {
+    "name": "GreenCore Appirest Collection",
+    "description": "Sistema integral de gestion de invernadero",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Zona - Listar",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/v1/zonas",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api/v1",
+            "zonas"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Usuario - Listar",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/v1/usuarios",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api/v1",
+            "usuarios"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Planta - Listar",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/v1/plantas",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api/v1",
+            "plantas"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Sensor - Listar",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/v1/sensores",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api/v1",
+            "sensores"
+          ]
+        }
+      }
+    },
+    {
+      "name": "LecturaSensor - Listar",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/v1/lecturas_sensor",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api/v1",
+            "lecturas_sensor"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Alerta - Listar",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/v1/alertas",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api/v1",
+            "alertas"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Cliente - Listar",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/v1/clientes",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api/v1",
+            "clientes"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Venta - Listar",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/v1/ventas",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api/v1",
+            "ventas"
+          ]
+        }
+      }
+    }
+  ]
+}

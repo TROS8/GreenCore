@@ -6,25 +6,22 @@ on:
   pull_request:
     branches: [ main, develop ]
 
-# ─── Variables globales ───────────────────────────────────────────────────────
 env:
   JAVA_VERSION: '17'
   NODE_VERSION: '18'
-  PYTHON_VERSION: '3.x'
+  PYTHON_VERSION: '3.11'
   JWT_SECRET_TEST: 'test-jwt-secret-for-junit-only'
 
-# ─── JOBS ────────────────────────────────────────────────────────────────────
 jobs:
 
-  # ── 1. Generación de código desde modelo.json ──────────────────────────────
+  # 1 - Generador de codigo desde modelo.json
   generate:
-    name: 'Code Generation (modelo.json → sources)'
+    name: Code Generation
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - uses: actions/setup-python@v4
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
@@ -32,15 +29,15 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: pip-generator-${{ hashFiles('greencore-generator/requirements.txt') }}
+          key: pip-gen-${{ hashFiles('greencore-generator/requirements.txt') }}
 
-      - name: Install generator dependencies
+      - name: Install generator deps
         run: pip install -r greencore-generator/requirements.txt
 
-      - name: Run GreenCore generator
+      - name: Run generator
         run: python greencore-generator/generate.py
 
-      - name: Upload generated i18n files
+      - name: Upload generated i18n
         uses: actions/upload-artifact@v4
         with:
           name: generated-i18n
@@ -48,9 +45,9 @@ jobs:
             backend/src/main/resources/messages.properties
             backend/src/main/resources/messages_en.properties
 
-  # ── 2. Build y tests del backend ───────────────────────────────────────────
+  # 2 - Backend Spring Boot + JUnit
   backend:
-    name: 'Backend (Spring Boot · Maven · JUnit)'
+    name: Backend - Spring Boot + JUnit
     runs-on: ubuntu-latest
     needs: generate
     steps:
@@ -62,36 +59,33 @@ jobs:
           name: generated-i18n
           path: backend/src/main/resources/
 
-      - name: Set up Java ${{ env.JAVA_VERSION }}
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
+          distribution: temurin
           java-version: ${{ env.JAVA_VERSION }}
 
-      - name: Cache Maven repository
+      - name: Cache Maven
         uses: actions/cache@v4
         with:
           path: ~/.m2/repository
           key: maven-${{ runner.os }}-${{ hashFiles('backend/pom.xml') }}
           restore-keys: maven-${{ runner.os }}-
 
-      - name: Build & run JUnit tests
+      - name: Build and test
         working-directory: backend
-        env:
-          APP_JWT_SECRET: ${{ env.JWT_SECRET_TEST }}
         run: |
           mvn -B package \
-            -Dapp.jwt.secret="${APP_JWT_SECRET}" \
-            -Dspring.security.oauth2.client.registration.google.client-id="test-ci-client" \
-            -Dspring.security.oauth2.client.registration.google.client-secret="test-ci-secret" \
-            -Dspring.mail.host="localhost" \
-            -Dspring.mail.port="25" \
-            -Dspring.mail.username="test" \
-            -Dspring.mail.password="test" \
-            -Dspring.mail.properties.mail.smtp.auth="false" \
-            -Dspring.mail.properties.mail.smtp.starttls.enable="false"
+            -Dapp.jwt.secret="${{ env.JWT_SECRET_TEST }}" \
+            -Dspring.security.oauth2.client.registration.google.client-id=test-ci \
+            -Dspring.security.oauth2.client.registration.google.client-secret=test-ci \
+            -Dspring.mail.host=localhost \
+            -Dspring.mail.port=25 \
+            -Dspring.mail.username=test \
+            -Dspring.mail.password=test \
+            -Dspring.mail.properties.mail.smtp.auth=false \
+            -Dspring.mail.properties.mail.smtp.starttls.enable=false
 
-      - name: Publish JUnit test results
+      - name: Upload JUnit results
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -105,25 +99,24 @@ jobs:
           path: backend/target/greencore-*.jar
           retention-days: 1
 
-  # ── 3. Build del frontend ──────────────────────────────────────────────────
+  # 3 - Frontend React + Vite
   frontend:
-    name: 'Frontend (React · Vite · TailwindCSS)'
+    name: Frontend - React + Vite
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Node.js ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: npm
           cache-dependency-path: frontend/package-lock.json
 
-      - name: Install dependencies
+      - name: Install deps
         working-directory: frontend
         run: npm ci
 
-      - name: Build production bundle
+      - name: Build
         working-directory: frontend
         run: npm run build
 
@@ -134,27 +127,24 @@ jobs:
           path: frontend/dist/
           retention-days: 1
 
-  # ── 4. Tests Selenium (end-to-end) ─────────────────────────────────────────
+  # 4 - Tests Selenium end-to-end
   selenium:
-    name: 'E2E Tests (Selenium · PyTest · Headless Chrome)'
+    name: E2E Tests - Selenium + PyTest
     runs-on: ubuntu-latest
     needs: [ backend, frontend ]
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - uses: actions/setup-python@v4
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Set up Java ${{ env.JAVA_VERSION }}
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
+          distribution: temurin
           java-version: ${{ env.JAVA_VERSION }}
 
-      - name: Set up Node.js ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
 
@@ -170,133 +160,115 @@ jobs:
           name: frontend-dist
           path: frontend/dist/
 
-      - name: Install Selenium test dependencies
-        run: pip install -r frontend/tests/requirements-selenium.txt
-
-      - name: Install frontend (for vite preview)
-        working-directory: frontend
-        run: npm ci
-
       - name: Install Chrome
         run: |
           sudo apt-get update -q
           sudo apt-get install -y -q google-chrome-stable
 
-      - name: Start backend (H2 in-memory)
+      - name: Install Selenium deps
+        run: pip install -r frontend/tests/requirements-selenium.txt
+
+      - name: Install frontend preview deps
+        working-directory: frontend
+        run: npm ci
+
+      - name: Start backend
         run: |
           java -jar backend/target/greencore-*.jar \
             --spring.profiles.active=test \
             --server.port=8080 \
             --spring.datasource.url="jdbc:h2:mem:greencore;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;NON_KEYWORDS=VALUE" \
-            --spring.datasource.driver-class-name="org.h2.Driver" \
-            --spring.datasource.username="sa" \
-            --spring.datasource.password="" \
-            --spring.jpa.database-platform="org.hibernate.dialect.H2Dialect" \
-            --spring.jpa.hibernate.ddl-auto="create-drop" \
+            --spring.datasource.driver-class-name=org.h2.Driver \
+            --spring.datasource.username=sa \
+            --spring.datasource.password= \
+            --spring.jpa.database-platform=org.hibernate.dialect.H2Dialect \
+            --spring.jpa.hibernate.ddl-auto=create-drop \
             --app.jwt.secret="${{ env.JWT_SECRET_TEST }}" \
-            --spring.security.oauth2.client.registration.google.client-id="test-ci-client" \
-            --spring.security.oauth2.client.registration.google.client-secret="test-ci-secret" \
-            --spring.mail.host="localhost" \
-            --spring.mail.port="25" \
-            --spring.mail.username="test" \
-            --spring.mail.password="test" \
-            --spring.mail.properties.mail.smtp.auth="false" \
-            --spring.mail.properties.mail.smtp.starttls.enable="false" &
-          echo "BACKEND_PID=$!" >> "$GITHUB_ENV"
+            --spring.security.oauth2.client.registration.google.client-id=test-ci \
+            --spring.security.oauth2.client.registration.google.client-secret=test-ci \
+            --spring.mail.host=localhost \
+            --spring.mail.port=25 \
+            --spring.mail.username=test \
+            --spring.mail.password=test \
+            --spring.mail.properties.mail.smtp.auth=false \
+            --spring.mail.properties.mail.smtp.starttls.enable=false &
 
-      - name: Start frontend preview server
+      - name: Start frontend preview
         run: |
           cd frontend && npm run preview -- --port 5173 &
-          echo "FRONTEND_PID=$!" >> "$GITHUB_ENV"
 
-      - name: Wait for backend to be ready
+      - name: Wait for backend
         run: |
-          echo "Esperando backend en http://localhost:8080..."
-          timeout 120 bash -c \
-            'until curl -sf http://localhost:8080/v3/api-docs > /dev/null 2>&1; do
-               echo "  → aún no disponible, reintentando..."; sleep 5;
-             done'
-          echo "✅ Backend listo"
+          echo "Waiting for backend..."
+          timeout 120 bash -c 'until curl -sf http://localhost:8080/v3/api-docs > /dev/null 2>&1; do sleep 5; done'
+          echo "Backend ready"
 
-      - name: Wait for frontend to be ready
+      - name: Wait for frontend
         run: |
-          echo "Esperando frontend en http://localhost:5173..."
-          timeout 30 bash -c \
-            'until curl -sf http://localhost:5173 > /dev/null 2>&1; do sleep 2; done'
-          echo "✅ Frontend listo"
+          echo "Waiting for frontend..."
+          timeout 30 bash -c 'until curl -sf http://localhost:5173 > /dev/null 2>&1; do sleep 2; done'
+          echo "Frontend ready"
 
       - name: Run Selenium tests
         env:
-          FRONTEND_URL: 'http://localhost:5173'
-          BACKEND_URL:  'http://localhost:8080'
-          JWT_SECRET:   ${{ env.JWT_SECRET_TEST }}
+          FRONTEND_URL: http://localhost:5173
+          BACKEND_URL: http://localhost:8080
+          JWT_SECRET: ${{ env.JWT_SECRET_TEST }}
         run: |
           pytest frontend/tests/ -v \
             --html=frontend/tests/selenium-report.html \
             --self-contained-html \
             -p no:warnings \
-            --tb=short \
-            -q
+            --tb=short
 
-      - name: Stop services
-        if: always()
-        run: |
-          kill $BACKEND_PID  2>/dev/null || true
-          kill $FRONTEND_PID 2>/dev/null || true
-
-      - name: Upload Selenium HTML report
+      - name: Upload Selenium report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: selenium-report
           path: frontend/tests/selenium-report.html
 
-  # ── 5. Trazabilidad Taiga ──────────────────────────────────────────────────
+  # 5 - Trazabilidad Taiga
   taiga:
-    name: 'Taiga Connectivity & Traceability Check'
+    name: Taiga Traceability Check
     runs-on: ubuntu-latest
     needs: generate
-    continue-on-error: true   # No bloquea el pipeline si Taiga no está disponible
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - uses: actions/setup-python@v4
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Install Taiga client dependencies
+      - name: Install Taiga client deps
         run: pip install -r taiga-client/requirements.txt
 
-      - name: Run Taiga connectivity check
+      - name: Run Taiga checker
         env:
-          TAIGA_URL:      ${{ secrets.TAIGA_URL      || 'https://api.taiga.io' }}
+          TAIGA_URL: https://api.taiga.io
           TAIGA_USERNAME: ${{ secrets.TAIGA_USERNAME }}
           TAIGA_PASSWORD: ${{ secrets.TAIGA_PASSWORD }}
-          TAIGA_PROJECT:  ${{ secrets.TAIGA_PROJECT  || 'greencore-invernadero' }}
+          TAIGA_PROJECT: ${{ secrets.TAIGA_PROJECT }}
         run: |
-          python taiga-client/taiga_checker.py \
-            --report html \
-            --ci \
-            --threshold 60
+          python taiga-client/taiga_checker.py --report html --ci --threshold 60
 
-      - name: Upload Taiga traceability report
+      - name: Upload Taiga report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: taiga-report
           path: taiga-report.html
 
-  # ── 6. Deploy a producción (solo en push a main) ────────────────────────────
+  # 6 - Deploy a produccion (solo push a main)
   deploy:
-    name: 'Deploy → Production (SSH + rsync)'
+    name: Deploy to Production
     runs-on: ubuntu-latest
     needs: [ backend, frontend, selenium, taiga ]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment:
       name: production
       url: http://${{ secrets.DEPLOY_HOST }}
-
     steps:
       - name: Download backend JAR
         uses: actions/download-artifact@v4
@@ -310,50 +282,37 @@ jobs:
           name: frontend-dist
           path: deploy/frontend/
 
-      # ── Configurar SSH ──
       - name: Configure SSH key
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/greencore_deploy
           chmod 600 ~/.ssh/greencore_deploy
-          # Registrar fingerprint del servidor para evitar prompt interactivo
           ssh-keyscan -H "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
 
-      # ── Desplegar JAR del backend ──
-      - name: Deploy backend JAR to server
+      - name: Deploy backend JAR
         run: |
           rsync -avz --progress \
             -e "ssh -i ~/.ssh/greencore_deploy -o StrictHostKeyChecking=no" \
             deploy/backend/ \
             "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/opt/greencore/app/"
 
-      # ── Desplegar frontend compilado ──
-      - name: Deploy frontend dist to server
+      - name: Deploy frontend dist
         run: |
           rsync -avz --delete --progress \
             -e "ssh -i ~/.ssh/greencore_deploy -o StrictHostKeyChecking=no" \
             deploy/frontend/ \
             "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/var/www/greencore/"
 
-      # ── Reiniciar servicio systemd ──
-      - name: Restart GreenCore backend service
+      - name: Restart backend service
         run: |
           ssh -i ~/.ssh/greencore_deploy \
             -o StrictHostKeyChecking=no \
             "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
-            "sudo systemctl restart greencore-backend \
-             && sudo systemctl is-active --quiet greencore-backend \
-             && echo '✅ greencore-backend activo' \
-             || (echo '❌ fallo al reiniciar' && sudo journalctl -u greencore-backend -n 30 && exit 1)"
+            "sudo systemctl restart greencore-backend && sudo systemctl is-active greencore-backend"
 
-      # ── Health-check post-deploy ──
-      - name: Health-check production
+      - name: Health check
         run: |
           sleep 10
           STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
             "http://${{ secrets.DEPLOY_HOST }}/actuator/health" || echo "000")
-          if [ "$STATUS" = "200" ]; then
-            echo "✅ Health-check OK (HTTP $STATUS)"
-          else
-            echo "⚠️  Health-check devolvió HTTP $STATUS — revisar servidor"
-          fi
+          echo "Health check HTTP $STATUS"

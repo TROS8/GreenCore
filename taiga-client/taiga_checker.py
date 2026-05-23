@@ -52,7 +52,7 @@ load_dotenv(dotenv_path=Path(__file__).parent / ".env", override=False)
 TAIGA_URL      = os.getenv("TAIGA_URL",      "https://api.taiga.io")
 TAIGA_USERNAME = os.getenv("TAIGA_USERNAME", "")
 TAIGA_PASSWORD = os.getenv("TAIGA_PASSWORD", "")
-TAIGA_PROJECT  = os.getenv("TAIGA_PROJECT",  "greencore-invernadero")
+TAIGA_PROJECT  = os.getenv("TAIGA_PROJECT",  "tros8-greencore")
 
 API_BASE = f"{TAIGA_URL.rstrip('/')}/api/v1"
 
@@ -84,7 +84,7 @@ class TaigaClient:
         Returns:
             True si la autenticación fue exitosa, False en caso contrario.
         """
-        url = f"{self.base_url}/api/v1/auth"
+        url = f"{self.base_url}/auth"
         payload = {
             "type":     "normal",
             "username": self.username,
@@ -121,7 +121,7 @@ class TaigaClient:
         Returns:
             Datos del proyecto o None si no se encontró.
         """
-        url = f"{self.base_url}/api/v1/projects/by_slug"
+        url = f"{self.base_url}/projects/by_slug"
         resp = self.session.get(url, params={"slug": slug}, timeout=10)
         if resp.status_code == 200:
             return resp.json()
@@ -140,7 +140,7 @@ class TaigaClient:
         Returns:
             Lista de user stories.
         """
-        url = f"{self.base_url}/api/v1/userstories"
+        url = f"{self.base_url}/userstories"
         resp = self.session.get(url, params={"project": project_id}, timeout=15)
         if resp.status_code == 200:
             return resp.json()
@@ -159,7 +159,7 @@ class TaigaClient:
         Returns:
             Detalle de la story o None.
         """
-        url = f"{self.base_url}/api/v1/userstories/{story_id}"
+        url = f"{self.base_url}/userstories/{story_id}"
         resp = self.session.get(url, timeout=10)
         if resp.status_code == 200:
             return resp.json()
@@ -177,7 +177,7 @@ class TaigaClient:
         Returns:
             Lista de epics.
         """
-        url = f"{self.base_url}/api/v1/epics"
+        url = f"{self.base_url}/epics"
         resp = self.session.get(url, params={"project": project_id}, timeout=10)
         if resp.status_code == 200:
             return resp.json()

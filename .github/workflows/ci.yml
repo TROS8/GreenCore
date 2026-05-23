@@ -183,6 +183,7 @@ jobs:
             --spring.datasource.password= \
             --spring.jpa.database-platform=org.hibernate.dialect.H2Dialect \
             --spring.jpa.hibernate.ddl-auto=create-drop \
+            --spring.sql.init.mode=never \
             --app.jwt.secret="${{ env.JWT_SECRET_TEST }}" \
             --spring.security.oauth2.client.registration.google.client-id=test-ci \
             --spring.security.oauth2.client.registration.google.client-secret=test-ci \
@@ -191,7 +192,8 @@ jobs:
             --spring.mail.username=test \
             --spring.mail.password=test \
             --spring.mail.properties.mail.smtp.auth=false \
-            --spring.mail.properties.mail.smtp.starttls.enable=false &
+            --spring.mail.properties.mail.smtp.starttls.enable=false \
+            > /tmp/backend.log 2>&1 &
 
       - name: Start frontend preview
         run: |
@@ -202,6 +204,10 @@ jobs:
           echo "Waiting for backend..."
           timeout 120 bash -c 'until curl -sf http://localhost:8080/v3/api-docs > /dev/null 2>&1; do sleep 5; done'
           echo "Backend ready"
+
+      - name: Show backend log on failure
+        if: failure()
+        run: cat /tmp/backend.log || echo "No backend log found"
 
       - name: Wait for frontend
         run: |

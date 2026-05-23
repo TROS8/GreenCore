@@ -59,7 +59,7 @@ class VentaControllerTest {
                 "lote", "LOT-" + UUID.randomUUID().toString().substring(0, 8),
                 "cantidad", 50,
                 "precio", 1.80,
-                "estado", "LISTO_VENTA",
+                "estado", "LISTA_VENTA",
                 "fechaSiembra", "2026-01-01",
                 "zona", Map.of("id", zonaId)
         );

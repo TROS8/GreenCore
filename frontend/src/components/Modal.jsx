@@ -1,3 +1,10 @@
+/**
+ * GreenCore — Sistema de gestion de invernadero
+ * Componente modal reutilizable para formularios de creacion y edicion.
+ *
+ * @module components/Modal
+ * @version 1.0.0
+ */
 import React from 'react'
 
 export function Modal({ title, onClose, children }) {

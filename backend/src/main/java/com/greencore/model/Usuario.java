@@ -1,3 +1,10 @@
+/**
+ * GreenCore — Sistema de gestion de invernadero
+ * Entidad JPA que representa un usuario autenticado via Google OAuth2.
+ *
+ * @author GreenCore Team
+ * @version 1.0.0
+ */
 package com.greencore.model;
 
 import jakarta.persistence.*;

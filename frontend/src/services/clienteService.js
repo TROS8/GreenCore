@@ -1,3 +1,10 @@
+/**
+ * GreenCore — Sistema de gestion de invernadero
+ * Servicio HTTP para la entidad Cliente. Consume /api/v1/clientes.
+ *
+ * @module services/clienteService
+ * @version 1.0.0
+ */
 import api from '../api/axiosInstance'
 
 const resourceUrl = '/clientes'

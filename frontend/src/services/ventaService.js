@@ -1,3 +1,10 @@
+/**
+ * GreenCore — Sistema de gestion de invernadero
+ * Servicio HTTP para la entidad Venta. Consume /api/v1/ventas.
+ *
+ * @module services/ventaService
+ * @version 1.0.0
+ */
 import api from '../api/axiosInstance'
 
 const resourceUrl = '/ventas'

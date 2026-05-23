@@ -1,3 +1,10 @@
+/**
+ * GreenCore — Sistema de gestion de invernadero
+ * Servicio HTTP para la entidad Alerta. Consume /api/v1/alertas.
+ *
+ * @module services/alertaService
+ * @version 1.0.0
+ */
 import api from '../api/axiosInstance'
 
 const resourceUrl = '/alertas'

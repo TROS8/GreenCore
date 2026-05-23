@@ -1,3 +1,10 @@
+/**
+ * GreenCore — Sistema de gestion de invernadero
+ * Vista de alertas automaticas. Permite marcar alertas como leidas.
+ *
+ * @module components/AlertaList
+ * @version 1.0.0
+ */
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { getAllAlertas, marcarLeida } from '../services/alertaService'

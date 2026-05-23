@@ -1,3 +1,10 @@
+/**
+ * GreenCore — Sistema de gestion de invernadero
+ * Servicio de envio de notificaciones por correo Gmail via Spring Mail.
+ *
+ * @author GreenCore Team
+ * @version 1.0.0
+ */
 package com.greencore.service;
 
 import org.springframework.beans.factory.annotation.Autowired;

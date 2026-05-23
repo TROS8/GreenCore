@@ -1,3 +1,10 @@
+/**
+ * GreenCore — Sistema de gestion de invernadero
+ * Servicio de logica de negocio para Alerta. Crea alertas y envia notificaciones Gmail en nivel CRITICO.
+ *
+ * @author GreenCore Team
+ * @version 1.0.0
+ */
 package com.greencore.service;
 
 import com.greencore.model.Alerta;

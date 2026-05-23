@@ -1,3 +1,10 @@
+/**
+ * GreenCore — Sistema de gestion de invernadero
+ * Componente raiz de la aplicacion GreenCore. Define el router y las rutas protegidas.
+ *
+ * @module App
+ * @version 1.0.0
+ */
 import React from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import './i18n/index.js'

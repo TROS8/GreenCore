@@ -1,3 +1,10 @@
+/**
+ * GreenCore — Sistema de gestion de invernadero
+ * Filtro de seguridad que extrae y valida el token JWT en cada peticion HTTP.
+ *
+ * @author GreenCore Team
+ * @version 1.0.0
+ */
 package com.greencore.security;
 
 import com.auth0.jwt.interfaces.DecodedJWT;

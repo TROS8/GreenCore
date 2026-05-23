@@ -1,3 +1,10 @@
+/**
+ * GreenCore — Sistema de gestion de invernadero
+ * Vista CRUD de zonas fisicas del invernadero.
+ *
+ * @module components/ZonaList
+ * @version 1.0.0
+ */
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { getAllZonas, createZona, updateZona, deleteZona } from '../services/zonaService'

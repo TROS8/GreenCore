@@ -1,3 +1,10 @@
+/**
+ * GreenCore — Sistema de gestion de invernadero
+ * Vista CRUD de clientes compradores del invernadero.
+ *
+ * @module components/ClienteList
+ * @version 1.0.0
+ */
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { getAllClientes, createCliente, updateCliente, deleteCliente } from '../services/clienteService'

@@ -1,3 +1,10 @@
+/**
+ * GreenCore — Sistema de gestion de invernadero
+ * Servicio HTTP para la entidad Sensor. Consume /api/v1/sensores.
+ *
+ * @module services/sensorService
+ * @version 1.0.0
+ */
 import api from '../api/axiosInstance'
 
 const resourceUrl = '/sensores'

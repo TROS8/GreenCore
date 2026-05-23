@@ -1,3 +1,10 @@
+/**
+ * GreenCore — Sistema de gestion de invernadero
+ * Configuracion de i18next para internacionalizacion ES/EN del frontend.
+ *
+ * @module i18n/index
+ * @version 1.0.0
+ */
 import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
 import es from './locales/es.json'

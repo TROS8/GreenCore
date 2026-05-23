@@ -1,3 +1,10 @@
+/**
+ * GreenCore — Sistema de gestion de invernadero
+ * Repositorio JPA para acceso a datos de la entidad Cliente.
+ *
+ * @author GreenCore Team
+ * @version 1.0.0
+ */
 package com.greencore.repository;
 
 import com.greencore.model.Cliente;

@@ -1,3 +1,10 @@
+/**
+ * GreenCore — Sistema de gestion de invernadero
+ * Entidad JPA que representa un cliente comprador de plantas del invernadero.
+ *
+ * @author GreenCore Team
+ * @version 1.0.0
+ */
 package com.greencore.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;

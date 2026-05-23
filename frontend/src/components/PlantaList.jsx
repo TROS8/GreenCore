@@ -1,3 +1,10 @@
+/**
+ * GreenCore — Sistema de gestion de invernadero
+ * Vista CRUD de plantas cultivadas. Muestra estado y lote de cada planta.
+ *
+ * @module components/PlantaList
+ * @version 1.0.0
+ */
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { getAllPlantas, createPlanta, updatePlanta, deletePlanta } from '../services/plantaService'

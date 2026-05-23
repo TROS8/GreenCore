@@ -1,3 +1,10 @@
+/**
+ * GreenCore — Sistema de gestion de invernadero
+ * Manejador de exito OAuth2: crea o actualiza el usuario Google y genera JWT.
+ *
+ * @author GreenCore Team
+ * @version 1.0.0
+ */
 package com.greencore.security;
 
 import com.greencore.model.Usuario;

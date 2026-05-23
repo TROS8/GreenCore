@@ -1,3 +1,10 @@
+/**
+ * GreenCore — Sistema de gestion de invernadero
+ * Utilidad para generacion y validacion de tokens JWT con HMAC256.
+ *
+ * @author GreenCore Team
+ * @version 1.0.0
+ */
 package com.greencore.security;
 
 import com.auth0.jwt.JWT;

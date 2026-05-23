@@ -1,3 +1,10 @@
+/**
+ * GreenCore — Sistema de gestion de invernadero
+ * Vista de administracion de usuarios del sistema.
+ *
+ * @module components/UsuarioList
+ * @version 1.0.0
+ */
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { getAllUsuarios } from '../services/usuarioService'

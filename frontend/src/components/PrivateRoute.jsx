@@ -1,3 +1,10 @@
+/**
+ * GreenCore — Sistema de gestion de invernadero
+ * Guarda de ruta que redirige al login si no hay token JWT en el store.
+ *
+ * @module components/PrivateRoute
+ * @version 1.0.0
+ */
 import React from 'react'
 import { useStore } from '../store/useStore'
 

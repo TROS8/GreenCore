@@ -1,3 +1,10 @@
+/**
+ * GreenCore — Sistema de gestion de invernadero
+ * Vista principal del dashboard con estadisticas del invernadero.
+ *
+ * @module components/Dashboard
+ * @version 1.0.0
+ */
 import React, { useEffect, useState } from 'react'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import { getAllSensors } from '../services/sensorService'

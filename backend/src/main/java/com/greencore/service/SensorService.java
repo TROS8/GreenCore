@@ -1,3 +1,10 @@
+/**
+ * GreenCore — Sistema de gestion de invernadero
+ * Servicio de logica de negocio para Sensor. Gestiona lecturas y dispara alertas automaticas.
+ *
+ * @author GreenCore Team
+ * @version 1.0.0
+ */
 package com.greencore.service;
 
 import com.greencore.model.*;

@@ -1,3 +1,10 @@
+/**
+ * GreenCore — Sistema de gestion de invernadero
+ * Servicio de logica de negocio para Usuario. Soporta upsert de usuarios Google OAuth2.
+ *
+ * @author GreenCore Team
+ * @version 1.0.0
+ */
 package com.greencore.service;
 
 import com.greencore.model.Role;

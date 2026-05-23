@@ -1,3 +1,10 @@
+/**
+ * GreenCore — Sistema de gestion de invernadero
+ * Vista de registro y consulta de ventas de plantas.
+ *
+ * @module components/VentaList
+ * @version 1.0.0
+ */
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { getAllVentas, createVenta } from '../services/ventaService'

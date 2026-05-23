@@ -1,3 +1,10 @@
+/**
+ * GreenCore — Sistema de gestion de invernadero
+ * Instancia de Axios configurada con la URL base del backend y el header Authorization.
+ *
+ * @module api/axiosInstance
+ * @version 1.0.0
+ */
 import axios from 'axios'
 import { useStore } from '../store/useStore'
 

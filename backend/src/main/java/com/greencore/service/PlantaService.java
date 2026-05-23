@@ -1,3 +1,10 @@
+/**
+ * GreenCore — Sistema de gestion de invernadero
+ * Servicio de logica de negocio para la entidad Planta. Gestiona el ciclo de vida y trazabilidad por lote.
+ *
+ * @author GreenCore Team
+ * @version 1.0.0
+ */
 package com.greencore.service;
 
 import com.greencore.model.Planta;

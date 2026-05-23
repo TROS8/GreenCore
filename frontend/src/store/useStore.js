@@ -1,3 +1,10 @@
+/**
+ * GreenCore — Sistema de gestion de invernadero
+ * Store global de Zustand con persistencia en localStorage. Gestiona token, usuario e idioma.
+ *
+ * @module store/useStore
+ * @version 1.0.0
+ */
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 

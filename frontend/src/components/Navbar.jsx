@@ -1,3 +1,10 @@
+/**
+ * GreenCore — Sistema de gestion de invernadero
+ * Barra de navegacion principal. Muestra enlaces, toggle de idioma y boton de logout.
+ *
+ * @module components/Navbar
+ * @version 1.0.0
+ */
 import React from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'

@@ -1,3 +1,10 @@
+/**
+ * GreenCore — Sistema de gestión de invernadero
+ * Entidad JPA que representa una zona física del invernadero.
+ *
+ * @author GreenCore Team
+ * @version 1.0.0
+ */
 package com.greencore.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -7,6 +14,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * Zona física del invernadero con condiciones ambientales controladas.
+ * Tabla BD: {@code zonas}. Entidad raíz: plantas y sensores siempre pertenecen a una zona.
+ */
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Entity
 @Table(name = "zonas")

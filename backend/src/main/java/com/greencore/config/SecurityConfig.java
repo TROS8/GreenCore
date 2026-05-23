@@ -1,3 +1,10 @@
+/**
+ * GreenCore — Sistema de gestion de invernadero
+ * Configuracion de Spring Security: JWT stateless, OAuth2 Google, CORS y rutas publicas.
+ *
+ * @author GreenCore Team
+ * @version 1.0.0
+ */
 package com.greencore.config;
 
 import com.greencore.security.JwtFilter;

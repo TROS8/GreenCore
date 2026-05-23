@@ -1,4 +1,4 @@
-name: CI
+name: GreenCore CI/CD
 
 on:
   push:
@@ -6,64 +6,82 @@ on:
   pull_request:
     branches: [ main, develop ]
 
+# ─── Variables globales ───────────────────────────────────────────────────────
+env:
+  JAVA_VERSION: '17'
+  NODE_VERSION: '18'
+  PYTHON_VERSION: '3.x'
+  JWT_SECRET_TEST: 'test-jwt-secret-for-junit-only'
+
+# ─── JOBS ────────────────────────────────────────────────────────────────────
 jobs:
-  build:
+
+  # ── 1. Generación de código desde modelo.json ──────────────────────────────
+  generate:
+    name: 'Code Generation (modelo.json → sources)'
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Java 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
+      - uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.x'
+          python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - name: Cache pip
+        uses: actions/cache@v4
         with:
-          node-version: '18'
+          path: ~/.cache/pip
+          key: pip-generator-${{ hashFiles('greencore-generator/requirements.txt') }}
 
-      - name: Install Python deps
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r greencore-generator/requirements.txt
+      - name: Install generator dependencies
+        run: pip install -r greencore-generator/requirements.txt
 
-      - name: Run generator
-        working-directory: ${{ github.workspace }}
+      - name: Run GreenCore generator
         run: python greencore-generator/generate.py
 
-      - name: Build and test backend (Maven)
-        run: mvn -B test
+      - name: Upload generated i18n files
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-i18n
+          path: |
+            backend/src/main/resources/messages.properties
+            backend/src/main/resources/messages_en.properties
+
+  # ── 2. Build y tests del backend ───────────────────────────────────────────
+  backend:
+    name: 'Backend (Spring Boot · Maven · JUnit)'
+    runs-on: ubuntu-latest
+    needs: generate
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download generated i18n
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-i18n
+          path: backend/src/main/resources/
+
+      - name: Set up Java ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Cache Maven repository
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: maven-${{ runner.os }}-${{ hashFiles('backend/pom.xml') }}
+          restore-keys: maven-${{ runner.os }}-
+
+      - name: Build & run JUnit tests
         working-directory: backend
-
-      - name: Run Python API tests
+        env:
+          APP_JWT_SECRET: ${{ env.JWT_SECRET_TEST }}
         run: |
-          python -m pip install pytest
-          pytest -q backend/tests || true
-
-      - name: Build frontend
-        run: |
-          cd frontend
-          npm ci
-          npm run build
-
-      - name: Run Selenium tests
-        run: |
-          # Instalar dependencias Selenium
-          pip install -r frontend/tests/requirements-selenium.txt
-
-          # Iniciar backend en H2 en background
-          cd backend
-          mvn -B spring-boot:run \
-            -Dspring-boot.run.profiles=test \
-            -Dspring.datasource.url="jdbc:h2:mem:greencore;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;NON_KEYWORDS=VALUE" \
-            -Dapp.jwt.secret="test-jwt-secret-for-junit-only" \
+          mvn -B package \
+            -Dapp.jwt.secret="${APP_JWT_SECRET}" \
             -Dspring.security.oauth2.client.registration.google.client-id="test-ci-client" \
             -Dspring.security.oauth2.client.registration.google.client-secret="test-ci-secret" \
             -Dspring.mail.host="localhost" \
@@ -71,47 +89,235 @@ jobs:
             -Dspring.mail.username="test" \
             -Dspring.mail.password="test" \
             -Dspring.mail.properties.mail.smtp.auth="false" \
-            -Dspring.mail.properties.mail.smtp.starttls.enable="false" &
-          BACKEND_PID=$!
+            -Dspring.mail.properties.mail.smtp.starttls.enable="false"
 
-          # Iniciar frontend (vite preview del build previo)
-          cd ../frontend
-          npm run preview -- --port 5173 &
-          FRONTEND_PID=$!
+      - name: Publish JUnit test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-results
+          path: backend/target/surefire-reports/
 
-          # Esperar a que ambos servicios esten listos
-          echo "Esperando backend..."
-          timeout 90 bash -c 'until curl -sf http://localhost:8080/v3/api-docs > /dev/null 2>&1; do sleep 3; done'
-          echo "Backend listo"
+      - name: Upload backend JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-jar
+          path: backend/target/greencore-*.jar
+          retention-days: 1
 
-          echo "Esperando frontend..."
-          timeout 30 bash -c 'until curl -sf http://localhost:5173 > /dev/null 2>&1; do sleep 2; done'
-          echo "Frontend listo"
+  # ── 3. Build del frontend ──────────────────────────────────────────────────
+  frontend:
+    name: 'Frontend (React · Vite · TailwindCSS)'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
-          # Ejecutar tests Selenium
-          cd ..
+      - name: Set up Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build production bundle
+        working-directory: frontend
+        run: npm run build
+
+      - name: Upload frontend dist
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist/
+          retention-days: 1
+
+  # ── 4. Tests Selenium (end-to-end) ─────────────────────────────────────────
+  selenium:
+    name: 'E2E Tests (Selenium · PyTest · Headless Chrome)'
+    runs-on: ubuntu-latest
+    needs: [ backend, frontend ]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Set up Java ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Set up Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Download backend JAR
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-jar
+          path: backend/target/
+
+      - name: Download frontend dist
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist/
+
+      - name: Install Selenium test dependencies
+        run: pip install -r frontend/tests/requirements-selenium.txt
+
+      - name: Install frontend (for vite preview)
+        working-directory: frontend
+        run: npm ci
+
+      - name: Install Chrome
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q google-chrome-stable
+
+      - name: Start backend (H2 in-memory)
+        run: |
+          java -jar backend/target/greencore-*.jar \
+            --spring.profiles.active=test \
+            --server.port=8080 \
+            --spring.datasource.url="jdbc:h2:mem:greencore;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;NON_KEYWORDS=VALUE" \
+            --spring.datasource.driver-class-name="org.h2.Driver" \
+            --spring.datasource.username="sa" \
+            --spring.datasource.password="" \
+            --spring.jpa.database-platform="org.hibernate.dialect.H2Dialect" \
+            --spring.jpa.hibernate.ddl-auto="create-drop" \
+            --app.jwt.secret="${{ env.JWT_SECRET_TEST }}" \
+            --spring.security.oauth2.client.registration.google.client-id="test-ci-client" \
+            --spring.security.oauth2.client.registration.google.client-secret="test-ci-secret" \
+            --spring.mail.host="localhost" \
+            --spring.mail.port="25" \
+            --spring.mail.username="test" \
+            --spring.mail.password="test" \
+            --spring.mail.properties.mail.smtp.auth="false" \
+            --spring.mail.properties.mail.smtp.starttls.enable="false" &
+          echo "BACKEND_PID=$!" >> "$GITHUB_ENV"
+
+      - name: Start frontend preview server
+        run: |
+          cd frontend && npm run preview -- --port 5173 &
+          echo "FRONTEND_PID=$!" >> "$GITHUB_ENV"
+
+      - name: Wait for backend to be ready
+        run: |
+          echo "Esperando backend en http://localhost:8080..."
+          timeout 120 bash -c \
+            'until curl -sf http://localhost:8080/v3/api-docs > /dev/null 2>&1; do
+               echo "  → aún no disponible, reintentando..."; sleep 5;
+             done'
+          echo "✅ Backend listo"
+
+      - name: Wait for frontend to be ready
+        run: |
+          echo "Esperando frontend en http://localhost:5173..."
+          timeout 30 bash -c \
+            'until curl -sf http://localhost:5173 > /dev/null 2>&1; do sleep 2; done'
+          echo "✅ Frontend listo"
+
+      - name: Run Selenium tests
+        env:
+          FRONTEND_URL: 'http://localhost:5173'
+          BACKEND_URL:  'http://localhost:8080'
+          JWT_SECRET:   ${{ env.JWT_SECRET_TEST }}
+        run: |
           pytest frontend/tests/ -v \
             --html=frontend/tests/selenium-report.html \
             --self-contained-html \
-            -p no:warnings || true
+            -p no:warnings \
+            --tb=short \
+            -q
 
-          # Terminar servicios
-          kill $BACKEND_PID $FRONTEND_PID 2>/dev/null || true
+      - name: Stop services
+        if: always()
+        run: |
+          kill $BACKEND_PID  2>/dev/null || true
+          kill $FRONTEND_PID 2>/dev/null || true
 
-      - name: Upload Selenium report
+      - name: Upload Selenium HTML report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: selenium-report
           path: frontend/tests/selenium-report.html
 
-      - name: Deploy (production)
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        env:
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-          DEPLOY_KEY:  ${{ secrets.DEPLOY_KEY }}
+  # ── 5. Deploy a producción (solo en push a main) ────────────────────────────
+  deploy:
+    name: 'Deploy → Production (SSH + rsync)'
+    runs-on: ubuntu-latest
+    needs: [ backend, frontend, selenium ]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment:
+      name: production
+      url: http://${{ secrets.DEPLOY_HOST }}
+
+    steps:
+      - name: Download backend JAR
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-jar
+          path: deploy/backend/
+
+      - name: Download frontend dist
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist
+          path: deploy/frontend/
+
+      # ── Configurar SSH ──
+      - name: Configure SSH key
         run: |
-          echo "Deploy step — configure secrets DEPLOY_HOST, DEPLOY_USER, DEPLOY_KEY"
-          # Example: rsync -avz --delete backend/target/*.jar $DEPLOY_USER@$DEPLOY_HOST:/opt/greencore/
-          # Example: rsync -avz --delete frontend/dist/    $DEPLOY_USER@$DEPLOY_HOST:/var/www/greencore/
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/greencore_deploy
+          chmod 600 ~/.ssh/greencore_deploy
+          # Registrar fingerprint del servidor para evitar prompt interactivo
+          ssh-keyscan -H "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
+
+      # ── Desplegar JAR del backend ──
+      - name: Deploy backend JAR to server
+        run: |
+          rsync -avz --progress \
+            -e "ssh -i ~/.ssh/greencore_deploy -o StrictHostKeyChecking=no" \
+            deploy/backend/ \
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/opt/greencore/app/"
+
+      # ── Desplegar frontend compilado ──
+      - name: Deploy frontend dist to server
+        run: |
+          rsync -avz --delete --progress \
+            -e "ssh -i ~/.ssh/greencore_deploy -o StrictHostKeyChecking=no" \
+            deploy/frontend/ \
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/var/www/greencore/"
+
+      # ── Reiniciar servicio systemd ──
+      - name: Restart GreenCore backend service
+        run: |
+          ssh -i ~/.ssh/greencore_deploy \
+            -o StrictHostKeyChecking=no \
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
+            "sudo systemctl restart greencore-backend \
+             && sudo systemctl is-active --quiet greencore-backend \
+             && echo '✅ greencore-backend activo' \
+             || (echo '❌ fallo al reiniciar' && sudo journalctl -u greencore-backend -n 30 && exit 1)"
+
+      # ── Health-check post-deploy ──
+      - name: Health-check production
+        run: |
+          sleep 10
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            "http://${{ secrets.DEPLOY_HOST }}/actuator/health" || echo "000")
+          if [ "$STATUS" = "200" ]; then
+            echo "✅ Health-check OK (HTTP $STATUS)"
+          else
+            echo "⚠️  Health-check devolvió HTTP $STATUS — revisar servidor"
+          fi

@@ -73,7 +73,9 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/oauth2/**",
-                                "/login/oauth2/**"
+                                "/login/oauth2/**",
+                                "/actuator/health",   // health-check para CI/CD
+                                "/actuator/info"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

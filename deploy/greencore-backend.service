@@ -1,0 +1,53 @@
+# /etc/systemd/system/greencore-backend.service
+# Copiar a: sudo cp greencore-backend.service /etc/systemd/system/
+# Activar:  sudo systemctl daemon-reload && sudo systemctl enable greencore-backend
+
+[Unit]
+Description=GreenCore Backend — Sistema de gestión de invernadero
+Documentation=https://github.com/TROS8/GreenCore
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=simple
+User=greencore
+Group=greencore
+WorkingDirectory=/opt/greencore/app
+
+# ── Binario ──────────────────────────────────────────────────────────────────
+ExecStart=/usr/bin/java \
+  -Xms256m -Xmx512m \
+  -Dspring.profiles.active=prod \
+  -Dserver.port=8080 \
+  -Dapp.jwt.secret=${JWT_SECRET} \
+  -jar /opt/greencore/app/greencore-*.jar
+
+# ── Variables de entorno ──────────────────────────────────────────────────────
+# El archivo /opt/greencore/app/greencore.env debe contener:
+#   SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/greencore
+#   SPRING_DATASOURCE_USERNAME=greencore_user
+#   SPRING_DATASOURCE_PASSWORD=<password>
+#   JWT_SECRET=<secret>
+#   GOOGLE_CLIENT_ID=<id>
+#   GOOGLE_CLIENT_SECRET=<secret>
+#   MAIL_USERNAME=<gmail>
+#   MAIL_PASSWORD=<app-password>
+EnvironmentFile=/opt/greencore/app/greencore.env
+
+# ── Reinicio automático ───────────────────────────────────────────────────────
+Restart=on-failure
+RestartSec=10
+TimeoutStartSec=60
+TimeoutStopSec=30
+
+# ── Seguridad ─────────────────────────────────────────────────────────────────
+NoNewPrivileges=true
+PrivateTmp=true
+
+# ── Logs ──────────────────────────────────────────────────────────────────────
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=greencore-backend
+
+[Install]
+WantedBy=multi-user.target

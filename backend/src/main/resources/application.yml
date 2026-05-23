@@ -52,6 +52,16 @@ app:
     expiration-hours: ${JWT_EXPIRATION_HOURS:168}
   frontend-url: ${FRONTEND_URL:http://localhost:5173}
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+
 logging:
   level:
     org.springframework: INFO

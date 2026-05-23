@@ -210,6 +210,226 @@ def generate_appirest_collection(entities, project):
     print(f"Generado: {output}")
 
 
+def generate_i18n(model):
+    """
+    Genera los archivos messages.properties (ES) y messages_en.properties (EN)
+    a partir del modelo.json. Estos archivos son consumidos por Spring MessageSource.
+    Se escriben en:
+      - backend/src/main/resources/messages.properties
+      - backend/src/main/resources/messages_en.properties
+    """
+    entities = model.get("entities", [])
+    project  = model["project"]
+
+    # ── Traducciones de labels por entidad ────────────────────────────────────
+    LABELS_ES = {
+        "zona":    {"nombre":"Nombre","descripcion":"Descripción","capacidadMaxima":"Capacidad máxima",
+                    "temperaturaMinima":"Temperatura mínima","temperaturaMaxima":"Temperatura máxima",
+                    "humedadMinima":"Humedad mínima","humedadMaxima":"Humedad máxima","activa":"Activa",
+                    "creadoEn":"Fecha de creación"},
+        "usuario": {"email":"Correo electrónico","nombre":"Nombre","fotoPerfil":"Foto de perfil",
+                    "rol":"Rol","provider":"Proveedor","providerId":"ID de proveedor",
+                    "activo":"Activo","ultimoAcceso":"Último acceso","creadoEn":"Fecha de creación"},
+        "planta":  {"nombre":"Nombre","especie":"Especie","lote":"Lote","cantidad":"Cantidad",
+                    "precio":"Precio","estado":"Estado","fechaSiembra":"Fecha de siembra",
+                    "fechaEstimadaVenta":"Fecha estimada de venta","descripcion":"Descripción",
+                    "imagenUrl":"Imagen","zona":"Zona","creadoEn":"Fecha de creación"},
+        "sensor":  {"codigo":"Código","tipo":"Tipo","valorActual":"Valor actual","unidad":"Unidad",
+                    "umbralMinimo":"Umbral mínimo","umbralMaximo":"Umbral máximo","estado":"Estado",
+                    "ultimaLectura":"Última lectura","zona":"Zona","creadoEn":"Fecha de creación"},
+        "lectura": {"valor":"Valor","fueraDeRango":"Fuera de rango","timestamp":"Fecha/hora",
+                    "sensor":"Sensor"},
+        "alerta":  {"mensaje":"Mensaje","nivel":"Nivel","leida":"Leída","correoEnviado":"Correo enviado",
+                    "valorRegistrado":"Valor registrado","timestamp":"Fecha/hora","sensor":"Sensor"},
+        "cliente": {"nombre":"Nombre","email":"Correo electrónico","telefono":"Teléfono",
+                    "ciudad":"Ciudad","activo":"Activo","creadoEn":"Fecha de creación"},
+        "venta":   {"numeroFactura":"N° Factura","cantidad":"Cantidad","precioUnitario":"Precio unitario",
+                    "total":"Total","estado":"Estado","notas":"Notas","fecha":"Fecha",
+                    "planta":"Planta","cliente":"Cliente","registradoPor":"Registrado por"},
+    }
+
+    LABELS_EN = {
+        "zona":    {"nombre":"Name","descripcion":"Description","capacidadMaxima":"Max capacity",
+                    "temperaturaMinima":"Min temperature","temperaturaMaxima":"Max temperature",
+                    "humedadMinima":"Min humidity","humedadMaxima":"Max humidity","activa":"Active",
+                    "creadoEn":"Created at"},
+        "usuario": {"email":"Email","nombre":"Name","fotoPerfil":"Profile picture",
+                    "rol":"Role","provider":"Provider","providerId":"Provider ID",
+                    "activo":"Active","ultimoAcceso":"Last access","creadoEn":"Created at"},
+        "planta":  {"nombre":"Name","especie":"Species","lote":"Batch","cantidad":"Quantity",
+                    "precio":"Price","estado":"Status","fechaSiembra":"Sowing date",
+                    "fechaEstimadaVenta":"Estimated sale date","descripcion":"Description",
+                    "imagenUrl":"Image","zona":"Zone","creadoEn":"Created at"},
+        "sensor":  {"codigo":"Code","tipo":"Type","valorActual":"Current value","unidad":"Unit",
+                    "umbralMinimo":"Min threshold","umbralMaximo":"Max threshold","estado":"Status",
+                    "ultimaLectura":"Last reading","zona":"Zone","creadoEn":"Created at"},
+        "lectura": {"valor":"Value","fueraDeRango":"Out of range","timestamp":"Timestamp",
+                    "sensor":"Sensor"},
+        "alerta":  {"mensaje":"Message","nivel":"Level","leida":"Read","correoEnviado":"Email sent",
+                    "valorRegistrado":"Recorded value","timestamp":"Timestamp","sensor":"Sensor"},
+        "cliente": {"nombre":"Name","email":"Email","telefono":"Phone",
+                    "ciudad":"City","activo":"Active","creadoEn":"Created at"},
+        "venta":   {"numeroFactura":"Invoice No.","cantidad":"Quantity","precioUnitario":"Unit price",
+                    "total":"Total","estado":"Status","notas":"Notes","fecha":"Date",
+                    "planta":"Plant","cliente":"Client","registradoPor":"Registered by"},
+    }
+
+    # ── Nombres de entidades ──────────────────────────────────────────────────
+    ENTITY_NAMES_ES = {
+        "Zona":"Zona","Planta":"Planta","Sensor":"Sensor","LecturaSensor":"Lectura de sensor",
+        "Alerta":"Alerta","Cliente":"Cliente","Venta":"Venta","Usuario":"Usuario",
+    }
+    ENTITY_NAMES_EN = {
+        "Zona":"Zone","Planta":"Plant","Sensor":"Sensor","LecturaSensor":"Sensor reading",
+        "Alerta":"Alert","Cliente":"Client","Venta":"Sale","Usuario":"User",
+    }
+
+    def build_props(labels_map, entity_names, lang):
+        lines = [
+            f"# GreenCore — messages_{lang}.properties" if lang != "es" else "# GreenCore — messages.properties",
+            f"# Generado automaticamente desde modelo.json — NO editar manualmente",
+            f"# Idioma: {'Espanol (por defecto)' if lang == 'es' else 'English'}",
+            "",
+            "# ── Errores comunes ─────────────────────────────────────────────────",
+        ]
+
+        if lang == "es":
+            lines += [
+                "error.notFound={0} no encontrado con ID: {1}",
+                "error.badRequest=Solicitud invalida: {0}",
+                "error.conflict=Ya existe un registro con ese valor: {0}",
+                "error.stockInsuficiente=Stock insuficiente. Disponible\\: {0}, solicitado\\: {1}",
+                "error.clienteConVentas=El cliente tiene ventas asociadas y no puede eliminarse",
+                "error.sensorFalla=El sensor esta en estado FALLA y no acepta lecturas",
+                "error.tokenExpirado=Token expirado o invalido. Por favor inicia sesion nuevamente",
+                "error.accesoDenegado=No tienes permisos para realizar esta accion",
+                "",
+                "# ── Mensajes de exito ───────────────────────────────────────────────",
+                "success.created={0} creado exitosamente",
+                "success.updated={0} actualizado exitosamente",
+                "success.deleted={0} eliminado exitosamente",
+                "success.lecturaRegistrada=Lectura registrada. Sensor\\: {0}, Valor\\: {1}",
+                "success.alertaLeida=Alerta marcada como leida",
+                "",
+                "# ── Alertas automaticas (cuerpo del correo Gmail) ───────────────────",
+                "alerta.email.subject=[GreenCore] Alerta {0} — Sensor {1}",
+                "alerta.email.body=Sensor\\: {0}\\nZona\\: {1}\\nValor registrado\\: {2} {3}\\nRango permitido\\: {4} — {5}\\nFecha\\: {6}",
+                "alerta.critico=Sensor {0} supero umbral critico: {1} (rango: {2}-{3})",
+                "alerta.advertencia=Sensor {0} registro valor fuera de rango: {1}",
+                "",
+                "# ── Validacion de campos ────────────────────────────────────────────",
+                "validation.required={0} es obligatorio",
+                "validation.minLength={0} debe tener al menos {1} caracteres",
+                "validation.maxLength={0} no puede superar {1} caracteres",
+                "validation.minValue={0} debe ser mayor o igual a {1}",
+                "validation.maxValue={0} no puede superar {1}",
+                "validation.emailInvalido=El correo electronico no tiene un formato valido",
+                "validation.unicidad={0} ya esta registrado en el sistema",
+            ]
+        else:
+            lines += [
+                "error.notFound={0} not found with ID: {1}",
+                "error.badRequest=Invalid request: {0}",
+                "error.conflict=A record with that value already exists: {0}",
+                "error.stockInsuficiente=Insufficient stock. Available\\: {0}, requested\\: {1}",
+                "error.clienteConVentas=The client has associated sales and cannot be deleted",
+                "error.sensorFalla=Sensor is in FALLA state and does not accept readings",
+                "error.tokenExpirado=Token expired or invalid. Please sign in again",
+                "error.accesoDenegado=You do not have permission to perform this action",
+                "",
+                "# ── Success messages ────────────────────────────────────────────────",
+                "success.created={0} created successfully",
+                "success.updated={0} updated successfully",
+                "success.deleted={0} deleted successfully",
+                "success.lecturaRegistrada=Reading registered. Sensor\\: {0}, Value\\: {1}",
+                "success.alertaLeida=Alert marked as read",
+                "",
+                "# ── Automatic alerts (Gmail body) ───────────────────────────────────",
+                "alerta.email.subject=[GreenCore] {0} Alert — Sensor {1}",
+                "alerta.email.body=Sensor\\: {0}\\nZone\\: {1}\\nRecorded value\\: {2} {3}\\nAllowed range\\: {4} — {5}\\nDate\\: {6}",
+                "alerta.critico=Sensor {0} exceeded critical threshold: {1} (range: {2}-{3})",
+                "alerta.advertencia=Sensor {0} recorded out-of-range value: {1}",
+                "",
+                "# ── Field validation ────────────────────────────────────────────────",
+                "validation.required={0} is required",
+                "validation.minLength={0} must have at least {1} characters",
+                "validation.maxLength={0} cannot exceed {1} characters",
+                "validation.minValue={0} must be greater than or equal to {1}",
+                "validation.maxValue={0} cannot exceed {1}",
+                "validation.emailInvalido=Email address format is invalid",
+                "validation.unicidad={0} is already registered in the system",
+            ]
+
+        # Nombres de entidades
+        lines += ["", "# ── Nombres de entidades ───────────────────────────────────────────"]
+        for en, label in entity_names.items():
+            lines.append(f"entity.{en.lower()}={label}")
+
+        # Labels de campos por entidad
+        for entity_key, fields in labels_map.items():
+            lines += ["", f"# ── {entity_key.capitalize()} ─────────────────────────────────────────────"]
+            for field_key, label in fields.items():
+                lines.append(f"{entity_key}.{field_key}={label}")
+
+        # Roles
+        lines += ["", "# ── Roles ───────────────────────────────────────────────────────────"]
+        if lang == "es":
+            lines += [
+                "role.ADMIN=Administrador",
+                "role.OPERARIO=Operario",
+                "role.VISUALIZADOR=Visualizador",
+            ]
+        else:
+            lines += [
+                "role.ADMIN=Administrator",
+                "role.OPERARIO=Operator",
+                "role.VISUALIZADOR=Viewer",
+            ]
+
+        # Estados de enums leidos desde modelo.json
+        lines += ["", "# ── Estados (enumeraciones) ─────────────────────────────────────────"]
+        ENUM_TRANS = {
+            "es": {
+                "SEMILLA":"Semilla","GERMINANDO":"Germinando","CRECIMIENTO":"Crecimiento",
+                "LISTA_VENTA":"Lista para venta","VENDIDA":"Vendida","BAJA":"Baja",
+                "ACTIVO":"Activo","INACTIVO":"Inactivo","FALLA":"Falla","CALIBRANDO":"Calibrando",
+                "TEMPERATURA":"Temperatura","HUMEDAD":"Humedad","LUMINOSIDAD":"Luminosidad",
+                "CO2":"CO2","PH_SUELO":"pH del suelo",
+                "INFO":"Información","ADVERTENCIA":"Advertencia","CRITICO":"Crítico",
+                "PENDIENTE":"Pendiente","COMPLETADA":"Completada","ANULADA":"Anulada",
+                "ADMIN":"Administrador","OPERARIO":"Operario","VISUALIZADOR":"Visualizador",
+            },
+            "en": {
+                "SEMILLA":"Seed","GERMINANDO":"Germinating","CRECIMIENTO":"Growing",
+                "LISTA_VENTA":"Ready for sale","VENDIDA":"Sold","BAJA":"Discharged",
+                "ACTIVO":"Active","INACTIVO":"Inactive","FALLA":"Fault","CALIBRANDO":"Calibrating",
+                "TEMPERATURA":"Temperature","HUMEDAD":"Humidity","LUMINOSIDAD":"Luminosity",
+                "CO2":"CO2","PH_SUELO":"Soil pH",
+                "INFO":"Info","ADVERTENCIA":"Warning","CRITICO":"Critical",
+                "PENDIENTE":"Pending","COMPLETADA":"Completed","ANULADA":"Cancelled",
+                "ADMIN":"Administrator","OPERARIO":"Operator","VISUALIZADOR":"Viewer",
+            },
+        }
+        for val, label in ENUM_TRANS[lang].items():
+            lines.append(f"enum.{val}={label}")
+
+        return "\n".join(lines) + "\n"
+
+    resources = BASE_DIR.parent / "backend" / "src" / "main" / "resources"
+    resources.mkdir(parents=True, exist_ok=True)
+
+    es_path = resources / "messages.properties"
+    en_path = resources / "messages_en.properties"
+
+    with open(es_path, "w", encoding="utf-8") as f:
+        f.write(build_props(LABELS_ES, ENTITY_NAMES_ES, "es"))
+    print(f"Generado: {es_path}")
+
+    with open(en_path, "w", encoding="utf-8") as f:
+        f.write(build_props(LABELS_EN, ENTITY_NAMES_EN, "en"))
+    print(f"Generado: {en_path}")
+
+
 def main():
     model = load_model()
     project = model["project"]
@@ -232,6 +452,7 @@ def main():
 
     generate_appirest_collection(entities, project)
     generate_seed_sql(model)
+    generate_i18n(model)
     print("Generación completada.")
 
 

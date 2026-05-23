@@ -267,57 +267,45 @@ jobs:
           path: taiga-report.html
 
   # 6 - Deploy a produccion (solo push a main)
+  # Render y Netlify auto-despliegan desde GitHub; este job solo verifica salud
   deploy:
-    name: Deploy to Production
+    name: Deploy to Production (Render + Netlify)
     runs-on: ubuntu-latest
     needs: [ backend, frontend, selenium, taiga ]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     continue-on-error: true
     environment: production
     steps:
-      - name: Download backend JAR
-        uses: actions/download-artifact@v4
-        with:
-          name: backend-jar
-          path: deploy/backend/
-
-      - name: Download frontend dist
-        uses: actions/download-artifact@v4
-        with:
-          name: frontend-dist
-          path: deploy/frontend/
-
-      - name: Configure SSH key
+      - name: Trigger Render deploy
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/greencore_deploy
-          chmod 600 ~/.ssh/greencore_deploy
-          ssh-keyscan -H "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
+          if [ -n "${{ secrets.RENDER_DEPLOY_HOOK }}" ]; then
+            echo "Triggering Render deploy..."
+            curl -s -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}" | head -c 200
+          else
+            echo "RENDER_DEPLOY_HOOK not set — Render auto-deploys from GitHub push"
+          fi
 
-      - name: Deploy backend JAR
+      - name: Trigger Netlify deploy
         run: |
-          rsync -avz --progress \
-            -e "ssh -i ~/.ssh/greencore_deploy -o StrictHostKeyChecking=no" \
-            deploy/backend/ \
-            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/opt/greencore/app/"
+          if [ -n "${{ secrets.NETLIFY_BUILD_HOOK }}" ]; then
+            echo "Triggering Netlify build..."
+            curl -s -X POST "${{ secrets.NETLIFY_BUILD_HOOK }}" | head -c 200
+          else
+            echo "NETLIFY_BUILD_HOOK not set — Netlify auto-deploys from GitHub push"
+          fi
 
-      - name: Deploy frontend dist
+      - name: Wait for Render backend to wake up
         run: |
-          rsync -avz --delete --progress \
-            -e "ssh -i ~/.ssh/greencore_deploy -o StrictHostKeyChecking=no" \
-            deploy/frontend/ \
-            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/var/www/greencore/"
+          echo "Waiting for Render backend (may take up to 2 min on free tier)..."
+          timeout 120 bash -c \
+            'until curl -sf https://greencore-api-4i99.onrender.com/actuator/health > /dev/null 2>&1; do
+               echo "  still waiting..."; sleep 10;
+             done'
+          echo "Backend health check passed ✅"
 
-      - name: Restart backend service
+      - name: Health check summary
         run: |
-          ssh -i ~/.ssh/greencore_deploy \
-            -o StrictHostKeyChecking=no \
-            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
-            "sudo systemctl restart greencore-backend && sudo systemctl is-active greencore-backend"
-
-      - name: Health check
-        run: |
-          sleep 10
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-            "http://${{ secrets.DEPLOY_HOST }}/actuator/health" || echo "000")
-          echo "Health check HTTP $STATUS"
+          BACKEND=$(curl -s -o /dev/null -w "%{http_code}" \
+            https://greencore-api-4i99.onrender.com/actuator/health || echo "000")
+          echo "Backend  → https://greencore-api-4i99.onrender.com  [HTTP $BACKEND]"
+          echo "Frontend → https://greencore.netlify.app"

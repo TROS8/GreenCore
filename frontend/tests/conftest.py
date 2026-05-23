@@ -9,11 +9,9 @@ import pytest
 import jwt as pyjwt
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-from webdriver_manager.chrome import ChromeDriverManager
 
 # ── Constantes ────────────────────────────────────────────────────────────────
 BASE_URL    = "http://localhost:5173"
@@ -48,10 +46,8 @@ def driver():
     options.add_argument("--window-size=1280,800")
     options.add_argument("--disable-gpu")
 
-    drv = webdriver.Chrome(
-        service=Service(ChromeDriverManager().install()),
-        options=options,
-    )
+    # Selenium Manager (incluido en selenium>=4.6) descarga chromedriver automaticamente
+    drv = webdriver.Chrome(options=options)
     drv.implicitly_wait(5)
     yield drv
     drv.quit()

@@ -251,11 +251,47 @@ jobs:
           name: selenium-report
           path: frontend/tests/selenium-report.html
 
-  # ── 5. Deploy a producción (solo en push a main) ────────────────────────────
+  # ── 5. Trazabilidad Taiga ──────────────────────────────────────────────────
+  taiga:
+    name: 'Taiga Connectivity & Traceability Check'
+    runs-on: ubuntu-latest
+    needs: generate
+    continue-on-error: true   # No bloquea el pipeline si Taiga no está disponible
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Taiga client dependencies
+        run: pip install -r taiga-client/requirements.txt
+
+      - name: Run Taiga connectivity check
+        env:
+          TAIGA_URL:      ${{ secrets.TAIGA_URL      || 'https://api.taiga.io' }}
+          TAIGA_USERNAME: ${{ secrets.TAIGA_USERNAME }}
+          TAIGA_PASSWORD: ${{ secrets.TAIGA_PASSWORD }}
+          TAIGA_PROJECT:  ${{ secrets.TAIGA_PROJECT  || 'greencore-invernadero' }}
+        run: |
+          python taiga-client/taiga_checker.py \
+            --report html \
+            --ci \
+            --threshold 60
+
+      - name: Upload Taiga traceability report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: taiga-report
+          path: taiga-report.html
+
+  # ── 6. Deploy a producción (solo en push a main) ────────────────────────────
   deploy:
     name: 'Deploy → Production (SSH + rsync)'
     runs-on: ubuntu-latest
-    needs: [ backend, frontend, selenium ]
+    needs: [ backend, frontend, selenium, taiga ]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment:
       name: production

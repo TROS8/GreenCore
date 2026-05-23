@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GreenCore — Reporte Taiga</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          margin:0; background:#f8fafc; color:#1e293b; }
+  .header { background:linear-gradient(135deg,#166534,#15803d);
+             color:#fff; padding:2rem 3rem; }
+  .header h1 { margin:0; font-size:1.8rem; }
+  .header p  { margin:.5rem 0 0; opacity:.85; font-size:.95rem; }
+  .container { max-width:1100px; margin:0 auto; padding:2rem 3rem; }
+  .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+            gap:1rem; margin:2rem 0; }
+  .card { background:#fff; border-radius:12px; padding:1.5rem;
+           box-shadow:0 1px 4px rgba(0,0,0,.08); text-align:center; }
+  .card .value { font-size:2.2rem; font-weight:700; color:#166534; }
+  .card .label { font-size:.85rem; color:#64748b; margin-top:.3rem; }
+  .progress-bar { background:#e2e8f0; border-radius:99px; height:22px;
+                   overflow:hidden; margin:1.5rem 0; }
+  .progress-fill { background:linear-gradient(90deg,#16a34a,#22c55e);
+                    height:100%; border-radius:99px; display:flex;
+                    align-items:center; justify-content:flex-end;
+                    padding-right:.75rem; color:#fff; font-weight:700;
+                    font-size:.85rem; min-width:2.5rem;
+                    transition:width .5s ease;
+                    width:94.4%; }
+  table { width:100%; border-collapse:collapse; background:#fff;
+           border-radius:12px; overflow:hidden;
+           box-shadow:0 1px 4px rgba(0,0,0,.08); }
+  th { background:#166534; color:#fff; padding:.85rem 1rem;
+        text-align:left; font-size:.88rem; font-weight:600; }
+  td { padding:.75rem 1rem; border-bottom:1px solid #f1f5f9;
+        font-size:.9rem; }
+  tr:last-child td { border-bottom:none; }
+  tr:hover td { background:#f0fdf4; }
+  .footer { text-align:center; color:#94a3b8; font-size:.82rem;
+             padding:2rem; }
+  a { color:#16a34a; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>🌱 GreenCore — Reporte de Trazabilidad Taiga</h1>
+  <p>Proyecto: <strong>GreenCore - Sistema de Invernadero</strong> &nbsp;|&nbsp;
+     <a href="https://tree.taiga.io/project/greencore-invernadero" style="color:#bbf7d0" target="_blank">https://tree.taiga.io/project/greencore-invernadero</a> &nbsp;|&nbsp;
+     Generado: 2026-05-23 01:53:09</p>
+</div>
+
+<div class="container">
+
+  <h2>📊 Resumen del Sprint</h2>
+  <div class="cards">
+    <div class="card">
+      <div class="value">18</div>
+      <div class="label">Total Stories</div>
+    </div>
+    <div class="card">
+      <div class="value" style="color:#16a34a">17</div>
+      <div class="label">✅ Completadas</div>
+    </div>
+    <div class="card">
+      <div class="value" style="color:#d97706">1</div>
+      <div class="label">🔄 En progreso</div>
+    </div>
+    <div class="card">
+      <div class="value" style="color:#64748b">0</div>
+      <div class="label">📋 Pendientes</div>
+    </div>
+    <div class="card">
+      <div class="value">134</div>
+      <div class="label">Story Points</div>
+    </div>
+    <div class="card">
+      <div class="value">94.4%</div>
+      <div class="label">Completitud</div>
+    </div>
+  </div>
+
+  <h3>Progreso general</h3>
+  <div class="progress-bar">
+    <div class="progress-fill">94.4%</div>
+  </div>
+
+  <h2>📋 User Stories</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Ref</th>
+        <th>Título</th>
+        <th>Epic</th>
+        <th style="text-align:center">Puntos</th>
+        <th>Estado</th>
+      </tr>
+    </thead>
+    <tbody>
+      
+        <tr>
+            <td style="color:#64748b">#1</td>
+            <td>Gestión de zonas del invernadero</td>
+            <td>Backend</td>
+            <td style="text-align:center">8</td>
+            <td><span style="color:#16a34a;font-weight:600">✅ Done</span></td>
+        </tr>
+        <tr>
+            <td style="color:#64748b">#2</td>
+            <td>Registro y autenticación de usuarios</td>
+            <td>Seguridad</td>
+            <td style="text-align:center">13</td>
+            <td><span style="color:#16a34a;font-weight:600">✅ Done</span></td>
+        </tr>
+        <tr>
+            <td style="color:#64748b">#3</td>
+            <td>OAuth2 con Google</td>
+            <td>Seguridad</td>
+            <td style="text-align:center">8</td>
+            <td><span style="color:#16a34a;font-weight:600">✅ Done</span></td>
+        </tr>
+        <tr>
+            <td style="color:#64748b">#4</td>
+            <td>Gestión de plantas por zona</td>
+            <td>Backend</td>
+            <td style="text-align:center">5</td>
+            <td><span style="color:#16a34a;font-weight:600">✅ Done</span></td>
+        </tr>
+        <tr>
+            <td style="color:#64748b">#5</td>
+            <td>Sensores IoT y lecturas en tiempo real</td>
+            <td>Backend</td>
+            <td style="text-align:center">13</td>
+            <td><span style="color:#16a34a;font-weight:600">✅ Done</span></td>
+        </tr>
+        <tr>
+            <td style="color:#64748b">#6</td>
+            <td>Sistema de alertas ambientales</td>
+            <td>Backend</td>
+            <td style="text-align:center">8</td>
+            <td><span style="color:#16a34a;font-weight:600">✅ Done</span></td>
+        </tr>
+        <tr>
+            <td style="color:#64748b">#7</td>
+            <td>Notificaciones por email (Gmail SMTP)</td>
+            <td>Seguridad</td>
+            <td style="text-align:center">5</td>
+            <td><span style="color:#16a34a;font-weight:600">✅ Done</span></td>
+        </tr>
+        <tr>
+            <td style="color:#64748b">#8</td>
+            <td>Gestión de clientes</td>
+            <td>Backend</td>
+            <td style="text-align:center">5</td>
+            <td><span style="color:#16a34a;font-weight:600">✅ Done</span></td>
+        </tr>
+        <tr>
+            <td style="color:#64748b">#9</td>
+            <td>Registro de ventas con control de stock</td>
+            <td>Backend</td>
+            <td style="text-align:center">8</td>
+            <td><span style="color:#16a34a;font-weight:600">✅ Done</span></td>
+        </tr>
+        <tr>
+            <td style="color:#64748b">#10</td>
+            <td>Dashboard React con métricas del invernadero</td>
+            <td>Frontend</td>
+            <td style="text-align:center">8</td>
+            <td><span style="color:#16a34a;font-weight:600">✅ Done</span></td>
+        </tr>
+        <tr>
+            <td style="color:#64748b">#11</td>
+            <td>Internacionalización ES/EN (i18n)</td>
+            <td>Frontend</td>
+            <td style="text-align:center">5</td>
+            <td><span style="color:#16a34a;font-weight:600">✅ Done</span></td>
+        </tr>
+        <tr>
+            <td style="color:#64748b">#12</td>
+            <td>Documentación OpenAPI / Swagger UI</td>
+            <td>Docs</td>
+            <td style="text-align:center">3</td>
+            <td><span style="color:#16a34a;font-weight:600">✅ Done</span></td>
+        </tr>
+        <tr>
+            <td style="color:#64748b">#13</td>
+            <td>Pipeline CI/CD con GitHub Actions</td>
+            <td>DevOps</td>
+            <td style="text-align:center">8</td>
+            <td><span style="color:#16a34a;font-weight:600">✅ Done</span></td>
+        </tr>
+        <tr>
+            <td style="color:#64748b">#14</td>
+            <td>Tests Selenium end-to-end</td>
+            <td>Testing</td>
+            <td style="text-align:center">8</td>
+            <td><span style="color:#16a34a;font-weight:600">✅ Done</span></td>
+        </tr>
+        <tr>
+            <td style="color:#64748b">#15</td>
+            <td>Generador de código desde modelo.json</td>
+            <td>DevOps</td>
+            <td style="text-align:center">13</td>
+            <td><span style="color:#16a34a;font-weight:600">✅ Done</span></td>
+        </tr>
+        <tr>
+            <td style="color:#64748b">#16</td>
+            <td>Conectividad y trazabilidad con Taiga</td>
+            <td>DevOps</td>
+            <td style="text-align:center">5</td>
+            <td><span style="color:#16a34a;font-weight:600">✅ Done</span></td>
+        </tr>
+        <tr>
+            <td style="color:#64748b">#17</td>
+            <td>Deploy automático en servidor de producción</td>
+            <td>DevOps</td>
+            <td style="text-align:center">8</td>
+            <td><span style="color:#d97706;font-weight:600">🔄 In Progress</span></td>
+        </tr>
+        <tr>
+            <td style="color:#64748b">#18</td>
+            <td>Modelo ER y diccionario de datos</td>
+            <td>Docs</td>
+            <td style="text-align:center">3</td>
+            <td><span style="color:#16a34a;font-weight:600">✅ Done</span></td>
+        </tr>
+    </tbody>
+  </table>
+
+</div>
+<div class="footer">
+  GreenCore v1.0.0 — Sistema de gestión de invernadero &nbsp;|&nbsp;
+  <a href="https://github.com/TROS8/GreenCore" target="_blank">GitHub</a>
+</div>
+</body>
+</html>

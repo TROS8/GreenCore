@@ -308,4 +308,4 @@ jobs:
           BACKEND=$(curl -s -o /dev/null -w "%{http_code}" \
             https://greencore-api-4i99.onrender.com/actuator/health || echo "000")
           echo "Backend  → https://greencore-api-4i99.onrender.com  [HTTP $BACKEND]"
-          echo "Frontend → https://greencore.netlify.app"
+          echo "Frontend → https://greencore-frontend.onrender.com"

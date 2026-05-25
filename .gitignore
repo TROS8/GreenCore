@@ -10,3 +10,5 @@ frontend/dist/
 frontend/node_modules/
 .tools/
 taiga-client/.env
+scripts/.env
+.claude/

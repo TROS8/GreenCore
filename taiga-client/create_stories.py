@@ -1,16 +1,76 @@
-"""Script para crear las 18 user stories de GreenCore en Taiga."""
+"""
+Script de un solo uso para crear las 18 user stories de GreenCore en Taiga.
+Lee credenciales desde el archivo .env (nunca hardcodeadas).
+
+Uso:
+    # Asegurarse de tener .env con TAIGA_USERNAME y TAIGA_PASSWORD
+    python create_stories.py
+"""
+import os
+import sys
 import requests
 import time
+from pathlib import Path
 
-TOKEN      = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzc5NTIzMzAzLCJqdGkiOiIzZmViMDBmMTgwODY0MzY1OTdmOTZlODBhYzk2NmQ2ZSIsInVzZXJfaWQiOjkxNDc2OH0.K8mZAbRQaoeSzrcjS-eXQaArNE8M6UKaSINtgh8HUgJSy_YjtueYwSnMnlZQymtAlZk2xHw8j1s59C8_n8t9JSTTgsoWchlzfFNxZz_xiC4FHvLxEzVuldwFlu2qoFmp3VR-eJpvpczmoIOhSbRDGPjneWb5m-DM5dfaG60o0QNUWCQlO8pBeI1rK1ntB3iFIXiMlSElR7imZj54_nUpJHOLxXzyesn7Uy1Qra_kt_vSMYMeRB5T8z8KuLHBURKgdcYxfNFBpt3Xr9zQemKXzuBZDdawpcN3E5a3bbKX6uy1PrDB00wZbCmDfZd4bD9qmb9AV-9uQgQB56WtVA59_w"
-PROJECT_ID = 1792551
-DONE       = 10875831
-IN_PROG    = 10875829
+try:
+    from dotenv import load_dotenv
+    load_dotenv(dotenv_path=Path(__file__).parent / ".env")
+except ImportError:
+    pass  # python-dotenv opcional; usar variables de entorno del sistema
+
+TAIGA_URL  = os.getenv("TAIGA_URL", "https://api.taiga.io")
+USERNAME   = os.getenv("TAIGA_USERNAME", "")
+PASSWORD   = os.getenv("TAIGA_PASSWORD", "")
+
+if not USERNAME or not PASSWORD:
+    print("ERROR: Configura TAIGA_USERNAME y TAIGA_PASSWORD en el archivo .env")
+    sys.exit(1)
+
+# Autenticar y obtener token
+auth_resp = requests.post(
+    f"{TAIGA_URL}/api/v1/auth",
+    json={"type": "normal", "username": USERNAME, "password": PASSWORD},
+    timeout=10,
+)
+if auth_resp.status_code != 200:
+    print(f"ERROR de autenticacion: HTTP {auth_resp.status_code}")
+    sys.exit(1)
+
+TOKEN = auth_resp.json()["auth_token"]
+print(f"Autenticado como '{USERNAME}'")
+
+# Obtener proyecto por slug
+SLUG = os.getenv("TAIGA_PROJECT", "tros8-greencore")
+proj_resp = requests.get(
+    f"{TAIGA_URL}/api/v1/projects/by_slug",
+    params={"slug": SLUG},
+    headers={"Authorization": f"Bearer {TOKEN}"},
+    timeout=10,
+)
+if proj_resp.status_code != 200:
+    print(f"ERROR: proyecto '{SLUG}' no encontrado")
+    sys.exit(1)
+
+proj      = proj_resp.json()
+PROJECT_ID = proj["id"]
+print(f"Proyecto: {proj['name']} (ID: {PROJECT_ID})")
+
+# Obtener estados del proyecto
+statuses_resp = requests.get(
+    f"{TAIGA_URL}/api/v1/userstory-statuses",
+    params={"project": PROJECT_ID},
+    headers={"Authorization": f"Bearer {TOKEN}"},
+    timeout=10,
+)
+statuses = {s["name"]: s["id"] for s in statuses_resp.json()}
+DONE    = statuses.get("Done",        list(statuses.values())[-1])
+IN_PROG = statuses.get("In progress", list(statuses.values())[2])
 
 HEADERS = {
     "Authorization": f"Bearer {TOKEN}",
     "Content-Type": "application/json",
 }
+
 
 STORIES = [
     {

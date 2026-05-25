@@ -1,0 +1,69 @@
+name: GreenCore Scheduled Health Check
+
+# Runs automatically every day at 08:00 UTC
+# Also allows manual trigger from the GitHub Actions tab
+on:
+  schedule:
+    - cron: '0 8 * * *'
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Reason for manual run'
+        required: false
+        default: 'Manual health check'
+
+env:
+  BACKEND_URL:  https://greencore-api-4i99.onrender.com
+  FRONTEND_URL: https://greencore-frontend.onrender.com
+
+jobs:
+  health-check:
+    name: Production Health Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for Render backend to wake (free tier cold start)
+        run: |
+          echo "⏳ Waking up Render backend (free tier may take up to 60s)..."
+          timeout 90 bash -c \
+            'until curl -sf "${{ env.BACKEND_URL }}/actuator/health" > /dev/null 2>&1; do
+               echo "  still waiting..."; sleep 10;
+             done'
+          echo "✅ Backend is up"
+
+      - name: Backend health check
+        id: backend
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            "${{ env.BACKEND_URL }}/actuator/health")
+          BODY=$(curl -s "${{ env.BACKEND_URL }}/actuator/health" | head -c 200)
+          echo "status=$STATUS" >> $GITHUB_OUTPUT
+          echo "body=$BODY"     >> $GITHUB_OUTPUT
+          echo "Backend HTTP $STATUS — $BODY"
+          [ "$STATUS" = "200" ] || exit 1
+
+      - name: Frontend health check
+        id: frontend
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${{ env.FRONTEND_URL }}")
+          echo "status=$STATUS" >> $GITHUB_OUTPUT
+          echo "Frontend HTTP $STATUS"
+          [ "$STATUS" = "200" ] || exit 1
+
+      - name: API smoke test — public endpoints
+        run: |
+          echo "Testing OpenAPI docs availability..."
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            "${{ env.BACKEND_URL }}/v3/api-docs")
+          echo "  /v3/api-docs → HTTP $STATUS"
+          [ "$STATUS" = "200" ] || exit 1
+
+      - name: Summary
+        if: always()
+        run: |
+          echo ""
+          echo "══════════════════════════════════════════"
+          echo "  GreenCore Health Check — $(date -u '+%Y-%m-%d %H:%M UTC')"
+          echo "══════════════════════════════════════════"
+          echo "  Backend  → ${{ env.BACKEND_URL }}  [HTTP ${{ steps.backend.outputs.status }}]"
+          echo "  Frontend → ${{ env.FRONTEND_URL }}  [HTTP ${{ steps.frontend.outputs.status }}]"
+          echo "══════════════════════════════════════════"

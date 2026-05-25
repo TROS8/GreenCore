@@ -49,16 +49,6 @@
     "noData": "No zones registered.",
     "confirmDelete": "Delete this zone? Associated data will also be removed."
   },
-  "usuario": {
-    "title": "Users",
-    "email": "Email",
-    "nombre": "Name",
-    "fotoPerfil": "Profile picture",
-    "rol": "Role",
-    "provider": "Provider",
-    "activo": "Active",
-    "ultimoAcceso": "Last access"
-  },
   "planta": {
     "title": "Plants",
     "nombre": "Name",
@@ -113,7 +103,9 @@
     "sensor": "Sensor",
     "noData": "No alerts registered.",
     "marcarLeida": "Mark as read",
-    "leida_badge": "Read"
+    "leida_badge": "Read",
+    "unreadSingular": "unread alert",
+    "unreadPlural": "unread alerts"
   },
   "cliente": {
     "title": "Clients",
@@ -166,6 +158,45 @@
     "cliente": "Client",
     "registradoPor": "Registered by",
     "new": "New Sale",
-    "noData": "No sales registered."
+    "noData": "No sales registered.",
+    "totalFacturado": "Total billed"
+  },
+  "usuario": {
+    "title": "Users",
+    "email": "Email",
+    "nombre": "Name",
+    "fotoPerfil": "Profile picture",
+    "rol": "Role",
+    "provider": "Provider",
+    "activo": "Active",
+    "ultimoAcceso": "Last access",
+    "adminSubtitle": "Manage roles and access for each user.",
+    "viewerSubtitle": "Users registered in the system.",
+    "adminOnly": "Only the ADMIN role can change roles or delete users.",
+    "colNombre": "User",
+    "colEmail": "Email",
+    "colRol": "Role",
+    "colEstado": "Status",
+    "colAcciones": "Actions",
+    "noData": "No users registered.",
+    "tu": "(you)",
+    "confirmDeleteTitle": "Delete user",
+    "confirmDeleteBody": "This action is irreversible. The user will not be able to access again until they sign in with Google."
+  },
+  "login": {
+    "title": "Welcome to GreenCore",
+    "subtitle": "Smart greenhouse management system",
+    "cta": "Continue with Google",
+    "sessionExpiredTitle": "Session expired",
+    "sessionExpiredDetail": "Your session expired or the server was restarted. Please sign in again.",
+    "needsLogin": "Sign in with your Google account to manage your greenhouse intelligently.",
+    "feature1Title": "Real-time monitoring",
+    "feature1Desc": "Temperature, humidity and sensors always up to date",
+    "feature2Title": "Full management",
+    "feature2Desc": "Zones, plants, clients and sales in one place",
+    "feature3Title": "Automatic alerts",
+    "feature3Desc": "Instant notifications when something exceeds the threshold",
+    "feature4Title": "Complete traceability",
+    "feature4Desc": "Reading history and production reports"
   }
 }

@@ -71,8 +71,8 @@ export function UsuarioList() {
           <h2 className="text-xl font-bold text-slate-800">{t('usuario.title')}</h2>
           <p className="text-sm text-slate-500 mt-0.5">
             {isAdmin
-              ? 'Gestiona roles y accesos de cada usuario.'
-              : 'Usuarios registrados en el sistema.'}
+              ? t('usuario.adminSubtitle')
+              : t('usuario.viewerSubtitle')}
           </p>
         </div>
         <span className="text-sm text-slate-400">{items.length} usuario{items.length !== 1 ? 's' : ''}</span>
@@ -81,7 +81,7 @@ export function UsuarioList() {
       {/* Banner info para no-admin */}
       {!isAdmin && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 text-blue-700 text-sm">
-          Solo el rol <strong>ADMIN</strong> puede cambiar roles o eliminar usuarios.
+          {t('usuario.adminOnly')}
         </div>
       )}
 
@@ -98,11 +98,11 @@ export function UsuarioList() {
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200">
-                <th className="text-left px-4 py-3 font-semibold text-slate-600">Usuario</th>
-                <th className="text-left px-4 py-3 font-semibold text-slate-600">Email</th>
-                <th className="text-left px-4 py-3 font-semibold text-slate-600">Rol</th>
-                <th className="text-left px-4 py-3 font-semibold text-slate-600">Estado</th>
-                {isAdmin && <th className="px-4 py-3 font-semibold text-slate-600 text-right">Acciones</th>}
+                <th className="text-left px-4 py-3 font-semibold text-slate-600">{t('usuario.colNombre')}</th>
+                <th className="text-left px-4 py-3 font-semibold text-slate-600">{t('usuario.colEmail')}</th>
+                <th className="text-left px-4 py-3 font-semibold text-slate-600">{t('usuario.colRol')}</th>
+                <th className="text-left px-4 py-3 font-semibold text-slate-600">{t('usuario.colEstado')}</th>
+                {isAdmin && <th className="px-4 py-3 font-semibold text-slate-600 text-right">{t('usuario.colAcciones')}</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -124,7 +124,7 @@ export function UsuarioList() {
                         )}
                         <div>
                           <span className="font-medium text-slate-800">{u.nombre}</span>
-                          {isSelf && <span className="ml-1.5 text-xs text-emerald-600 font-semibold">(tú)</span>}
+                          {isSelf && <span className="ml-1.5 text-xs text-emerald-600 font-semibold">{t('usuario.tu')}</span>}
                         </div>
                       </div>
                     </td>
@@ -159,7 +159,7 @@ export function UsuarioList() {
                     <td className="px-4 py-3">
                       <span className={`text-xs px-2 py-0.5 rounded-full font-medium
                         ${u.activo ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
-                        {u.activo ? 'Activo' : 'Inactivo'}
+                        {u.activo ? t('common.active') : t('common.inactive')}
                       </span>
                     </td>
 
@@ -173,7 +173,7 @@ export function UsuarioList() {
                             className="text-xs px-3 py-1 rounded-lg bg-red-50 text-red-600 hover:bg-red-100
                                        border border-red-200 transition disabled:opacity-40 disabled:cursor-wait"
                           >
-                            {isBusy ? '...' : 'Eliminar'}
+                            {isBusy ? '...' : t('common.delete')}
                           </button>
                         ) : (
                           <span className="text-xs text-slate-300">—</span>
@@ -186,7 +186,7 @@ export function UsuarioList() {
               {items.length === 0 && (
                 <tr>
                   <td colSpan={isAdmin ? 5 : 4} className="px-4 py-8 text-center text-slate-400">
-                    Sin usuarios registrados.
+                    {t('usuario.noData')}
                   </td>
                 </tr>
               )}
@@ -199,22 +199,22 @@ export function UsuarioList() {
       {confirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full mx-4">
-            <h3 className="text-lg font-bold text-slate-800 mb-2">Eliminar usuario</h3>
+            <h3 className="text-lg font-bold text-slate-800 mb-2">{t('usuario.confirmDeleteTitle')}</h3>
             <p className="text-slate-600 text-sm mb-6">
-              Esta accion es irreversible. El usuario no podra volver a acceder hasta que inicie sesion de nuevo con Google.
+              {t('usuario.confirmDeleteBody')}
             </p>
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setConfirm(null)}
                 className="px-4 py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 text-sm transition"
               >
-                Cancelar
+                {t('common.cancel')}
               </button>
               <button
                 onClick={() => handleDelete(confirm)}
                 className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 text-sm font-semibold transition"
               >
-                Eliminar
+                {t('common.delete')}
               </button>
             </div>
           </div>

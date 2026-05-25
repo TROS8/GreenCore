@@ -97,7 +97,7 @@ export function VentaList() {
           {[
             { label: t('venta.estado') + ' — PENDIENTE',  value: items.filter((v) => v.estado === 'PENDIENTE').length,  color: 'text-yellow-600' },
             { label: t('venta.estado') + ' — COMPLETADA', value: items.filter((v) => v.estado === 'COMPLETADA').length, color: 'text-green-600'  },
-            { label: 'Total facturado', value: `$${totalVentas.toLocaleString()}`, color: 'text-emerald-700' },
+            { label: t('venta.totalFacturado'), value: `$${totalVentas.toLocaleString()}`, color: 'text-emerald-700' },
           ].map((kpi) => (
             <div key={kpi.label} className="bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-3">
               <p className="text-xs text-slate-400 font-medium">{kpi.label}</p>

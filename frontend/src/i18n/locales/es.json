@@ -49,16 +49,6 @@
     "noData": "Sin zonas registradas.",
     "confirmDelete": "¿Eliminar esta zona? Se eliminará junto con sus datos asociados."
   },
-  "usuario": {
-    "title": "Usuarios",
-    "email": "Correo electrónico",
-    "nombre": "Nombre",
-    "fotoPerfil": "Foto de perfil",
-    "rol": "Rol",
-    "provider": "Proveedor",
-    "activo": "Activo",
-    "ultimoAcceso": "Último acceso"
-  },
   "planta": {
     "title": "Plantas",
     "nombre": "Nombre",
@@ -113,7 +103,9 @@
     "sensor": "Sensor",
     "noData": "Sin alertas registradas.",
     "marcarLeida": "Marcar leída",
-    "leida_badge": "Leída"
+    "leida_badge": "Leída",
+    "unreadSingular": "alerta sin leer",
+    "unreadPlural": "alertas sin leer"
   },
   "cliente": {
     "title": "Clientes",
@@ -166,6 +158,45 @@
     "cliente": "Cliente",
     "registradoPor": "Registrado por",
     "new": "Nueva Venta",
-    "noData": "Sin ventas registradas."
+    "noData": "Sin ventas registradas.",
+    "totalFacturado": "Total facturado"
+  },
+  "usuario": {
+    "title": "Usuarios",
+    "email": "Correo electrónico",
+    "nombre": "Nombre",
+    "fotoPerfil": "Foto de perfil",
+    "rol": "Rol",
+    "provider": "Proveedor",
+    "activo": "Activo",
+    "ultimoAcceso": "Último acceso",
+    "adminSubtitle": "Gestiona roles y accesos de cada usuario.",
+    "viewerSubtitle": "Usuarios registrados en el sistema.",
+    "adminOnly": "Solo el rol ADMIN puede cambiar roles o eliminar usuarios.",
+    "colNombre": "Usuario",
+    "colEmail": "Email",
+    "colRol": "Rol",
+    "colEstado": "Estado",
+    "colAcciones": "Acciones",
+    "noData": "Sin usuarios registrados.",
+    "tu": "(tú)",
+    "confirmDeleteTitle": "Eliminar usuario",
+    "confirmDeleteBody": "Esta acción es irreversible. El usuario no podrá volver a acceder hasta que inicie sesión de nuevo con Google."
+  },
+  "login": {
+    "title": "Bienvenido a GreenCore",
+    "subtitle": "Sistema inteligente de gestión de invernadero",
+    "cta": "Continuar con Google",
+    "sessionExpiredTitle": "Sesión expirada",
+    "sessionExpiredDetail": "Tu sesión venció o el servidor fue reiniciado. Por favor inicia sesión de nuevo.",
+    "needsLogin": "Accede con tu cuenta de Google para gestionar tu invernadero de forma inteligente.",
+    "feature1Title": "Monitoreo en tiempo real",
+    "feature1Desc": "Temperatura, humedad y sensores siempre al día",
+    "feature2Title": "Gestión integral",
+    "feature2Desc": "Zonas, plantas, clientes y ventas en un solo lugar",
+    "feature3Title": "Alertas automáticas",
+    "feature3Desc": "Notificaciones al instante cuando algo sale del umbral",
+    "feature4Title": "Trazabilidad completa",
+    "feature4Desc": "Historial de lecturas y reportes de producción"
   }
 }

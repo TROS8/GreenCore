@@ -51,7 +51,7 @@ export function AlertaList() {
         <div className="space-y-3">
           {unread > 0 && (
             <p className="text-xs text-slate-400 font-medium">
-              {unread} {unread === 1 ? 'alerta sin leer' : 'alertas sin leer'}
+              {unread} {unread === 1 ? t('alerta.unreadSingular') : t('alerta.unreadPlural')}
             </p>
           )}
           {items.map((a) => (

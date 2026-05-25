@@ -37,8 +37,12 @@ class TestDashboard:
         go(auth_driver, "/")
         time.sleep(1.5)
         # Busca tarjetas de estadisticas o elementos de contenido
+        # Acepta clases de Tailwind v2/v3: rounded, rounded-lg, rounded-2xl,
+        # shadow, shadow-sm, shadow-md, bg-white, p-4, p-5, p-6
         cards = auth_driver.find_elements(By.CSS_SELECTOR,
-            "div.rounded, div.shadow, div.bg-white, div.p-4, div.p-6")
+            "div.rounded, div.rounded-lg, div.rounded-2xl, "
+            "div.shadow, div.shadow-sm, div.shadow-md, "
+            "div.bg-white, div.p-4, div.p-5, div.p-6")
         assert len(cards) > 0, "El dashboard debe tener al menos un elemento de contenido"
 
     def test_url_es_raiz(self, auth_driver):

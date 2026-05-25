@@ -5,3 +5,34 @@
 html, body, #root {
   height: 100%;
 }
+
+body {
+  background-color: #f0fdf4;   /* verde muy tenue */
+  background-image:
+    radial-gradient(circle at 10% 20%, rgba(16,185,129,0.06) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(6,182,212,0.05) 0%, transparent 40%);
+  background-attachment: fixed;
+}
+
+/* Transiciones suaves en rutas */
+main {
+  animation: fadeIn 0.18s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}
+
+/* Scrollbar discreta */
+::-webkit-scrollbar        { width: 6px; height: 6px; }
+::-webkit-scrollbar-track  { background: transparent; }
+::-webkit-scrollbar-thumb  { background: #cbd5e1; border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* Focus ring accesible */
+*:focus-visible {
+  outline: 2px solid #10b981;
+  outline-offset: 2px;
+  border-radius: 4px;
+}

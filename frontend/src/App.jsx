@@ -24,9 +24,9 @@ export default function App() {
   return (
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <AuthHandler />
-      <div className="min-h-screen bg-slate-100 flex flex-col">
+      <div className="min-h-screen flex flex-col">
         <Navbar />
-        <main className="flex-1 container mx-auto p-6">
+        <main className="flex-1 container mx-auto px-4 py-6 max-w-7xl">
           <Routes>
             <Route path="/" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
             <Route path="/zonas" element={<PrivateRoute><ZonaList /></PrivateRoute>} />

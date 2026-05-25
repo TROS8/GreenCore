@@ -11,6 +11,9 @@ env:
   NODE_VERSION: '18'
   PYTHON_VERSION: '3.11'
   JWT_SECRET_TEST: 'test-jwt-secret-for-junit-only'
+  # Opt into Node.js 24 runtime for all actions (avoids Node 20 deprecation warnings).
+  # Node 20 is removed from GitHub runners on Sept 16, 2026.
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
 
 jobs:
 

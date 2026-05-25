@@ -242,6 +242,14 @@ jobs:
           name: selenium-report
           path: frontend/tests/selenium-report.html
 
+      - name: Upload failure screenshots
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: selenium-screenshots
+          path: /tmp/screenshots/
+          if-no-files-found: ignore
+
   # 5 - Trazabilidad Taiga
   taiga:
     name: Taiga Traceability Check

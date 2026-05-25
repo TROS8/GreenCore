@@ -225,7 +225,15 @@ jobs:
             --html=frontend/tests/selenium-report.html \
             --self-contained-html \
             -p no:warnings \
-            --tb=short
+            --tb=long \
+            -s 2>&1 | tee /tmp/pytest-output.txt; EXIT=${PIPESTATUS[0]}
+          if [ "$EXIT" != "0" ]; then
+            echo ""
+            echo "========== SELENIUM TEST FAILURES =========="
+            grep -A 30 "FAILED\|AssertionError\|Error\|short test summary" /tmp/pytest-output.txt || true
+            echo "============================================"
+            exit $EXIT
+          fi
 
       - name: Upload Selenium report
         if: always()

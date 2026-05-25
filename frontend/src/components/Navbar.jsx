@@ -74,8 +74,8 @@ export default function Navbar() {
               className={({ isActive }) =>
                 `px-3 py-1.5 rounded-md text-sm font-medium whitespace-nowrap transition-all duration-150
                  ${isActive
-                   ? 'bg-white/20 text-white shadow-sm'
-                   : 'text-emerald-100 hover:bg-white/10 hover:text-white'}`
+                   ? 'bg-emerald-900 text-white shadow-sm'
+                   : 'text-emerald-100 hover:bg-emerald-600 hover:text-white'}`
               }
             >
               {t(key)}
@@ -155,7 +155,7 @@ export default function Navbar() {
               onClick={() => setMenuOpen(false)}
               className={({ isActive }) =>
                 `px-3 py-2 rounded-md text-sm font-medium transition
-                 ${isActive ? 'bg-white/20' : 'hover:bg-white/10'}`
+                 ${isActive ? 'bg-emerald-900' : 'hover:bg-emerald-600'}`
               }
             >
               {t(key)}

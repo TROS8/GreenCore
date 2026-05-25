@@ -73,7 +73,8 @@ def auth_driver(driver):
                 "email":  TEST_EMAIL,
                 "rol":    TEST_ROLE,
             },
-            "locale": "es",
+            "role":          TEST_ROLE,   # campo nuevo requerido por useStore v1.0.0
+            "locale":        "es",
             "sessionExpired": False,
         },
         "version": 0,

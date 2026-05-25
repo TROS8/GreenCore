@@ -54,7 +54,7 @@ jobs:
       - uses: actions/checkout@v5
 
       - name: Download generated i18n
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: generated-i18n
           path: backend/src/main/resources/
@@ -149,13 +149,13 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
 
       - name: Download backend JAR
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: backend-jar
           path: backend/target/
 
       - name: Download frontend dist
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: frontend-dist
           path: frontend/dist/

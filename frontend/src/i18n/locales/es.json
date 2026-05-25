@@ -10,7 +10,17 @@
     "yes": "Sí",
     "no": "No",
     "active": "Activo",
-    "inactive": "Inactivo"
+    "inactive": "Inactivo",
+    "new": "Nuevo",
+    "noData": "Sin registros.",
+    "markRead": "Marcar leída",
+    "value": "Valor",
+    "confirmDelete": "¿Eliminar este registro? Esta acción no se puede deshacer.",
+    "selectZone": "— Seleccionar zona —",
+    "selectPlant": "— Seleccionar planta —",
+    "selectClient": "— Seleccionar cliente —",
+    "range": "Rango",
+    "register": "Registrar"
   },
   "nav": {
     "dashboard": "Panel",
@@ -33,7 +43,11 @@
     "temperaturaMaxima": "Temperatura máx.",
     "humedadMinima": "Humedad mín.",
     "humedadMaxima": "Humedad máx.",
-    "activa": "Activa"
+    "activa": "Activa",
+    "new": "Nueva Zona",
+    "edit": "Editar Zona",
+    "noData": "Sin zonas registradas.",
+    "confirmDelete": "¿Eliminar esta zona? Se eliminará junto con sus datos asociados."
   },
   "usuario": {
     "title": "Usuarios",
@@ -57,7 +71,11 @@
     "fechaEstimadaVenta": "Fecha estimada de venta",
     "descripcion": "Descripción",
     "imagenUrl": "Imagen",
-    "zona": "Zona"
+    "zona": "Zona",
+    "new": "Nueva Planta",
+    "edit": "Editar Planta",
+    "noData": "Sin plantas registradas.",
+    "confirmDelete": "¿Eliminar esta planta?"
   },
   "sensor": {
     "title": "Sensores",
@@ -69,7 +87,14 @@
     "umbralMaximo": "Umbral máx.",
     "estado": "Estado",
     "ultimaLectura": "Última lectura",
-    "zona": "Zona"
+    "zona": "Zona",
+    "new": "Nuevo Sensor",
+    "edit": "Editar Sensor",
+    "noData": "Sin sensores registrados.",
+    "confirmDelete": "¿Eliminar este sensor?",
+    "registrarLectura": "Registrar Lectura",
+    "lecturaInfo": "Ingresa el nuevo valor. Si está fuera del rango configurado, se generará una alerta automáticamente.",
+    "addLectura": "+ Lectura"
   },
   "lectura": {
     "title": "Lecturas",
@@ -85,7 +110,10 @@
     "leida": "Leída",
     "valorRegistrado": "Valor registrado",
     "timestamp": "Fecha/hora",
-    "sensor": "Sensor"
+    "sensor": "Sensor",
+    "noData": "Sin alertas registradas.",
+    "marcarLeida": "Marcar leída",
+    "leida_badge": "Leída"
   },
   "cliente": {
     "title": "Clientes",
@@ -93,7 +121,37 @@
     "email": "Correo electrónico",
     "telefono": "Teléfono",
     "ciudad": "Ciudad",
-    "activo": "Activo"
+    "activo": "Activo",
+    "new": "Nuevo Cliente",
+    "edit": "Editar Cliente",
+    "noData": "Sin clientes registrados.",
+    "confirmDelete": "¿Eliminar este cliente?"
+  },
+  "dashboard": {
+    "loading": "Cargando invernadero...",
+    "subtitle": "Resumen del invernadero",
+    "goodMorning": "Buenos días",
+    "goodAfternoon": "Buenas tardes",
+    "goodEvening": "Buenas noches",
+    "sensorStatus": "Estado de sensores",
+    "chart": {
+      "normal": "Valores actuales — sensores de rango normal",
+      "high": "Valores actuales — sensores de rango alto"
+    },
+    "kpi": {
+      "activeZones": "Zonas activas",
+      "activeSensors": "Sensores activos",
+      "readyForSale": "Listas p/ venta",
+      "unreadAlerts": "Alertas sin leer",
+      "ofTotal": "de {{total}} totales",
+      "ofPlants": "de {{total}} plantas",
+      "reviewRequired": "Revisión requerida",
+      "allGood": "Todo en orden"
+    },
+    "empty": {
+      "title": "El invernadero está vacío",
+      "hint": "Comienza creando zonas y sensores desde el menú lateral."
+    }
   },
   "venta": {
     "title": "Ventas",
@@ -106,6 +164,8 @@
     "fecha": "Fecha",
     "planta": "Planta",
     "cliente": "Cliente",
-    "registradoPor": "Registrado por"
+    "registradoPor": "Registrado por",
+    "new": "Nueva Venta",
+    "noData": "Sin ventas registradas."
   }
 }

@@ -10,7 +10,17 @@
     "yes": "Yes",
     "no": "No",
     "active": "Active",
-    "inactive": "Inactive"
+    "inactive": "Inactive",
+    "new": "New",
+    "noData": "No records found.",
+    "markRead": "Mark as read",
+    "value": "Value",
+    "confirmDelete": "Delete this record? This action cannot be undone.",
+    "selectZone": "— Select zone —",
+    "selectPlant": "— Select plant —",
+    "selectClient": "— Select client —",
+    "range": "Range",
+    "register": "Register"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -33,7 +43,11 @@
     "temperaturaMaxima": "Max temperature",
     "humedadMinima": "Min humidity",
     "humedadMaxima": "Max humidity",
-    "activa": "Active"
+    "activa": "Active",
+    "new": "New Zone",
+    "edit": "Edit Zone",
+    "noData": "No zones registered.",
+    "confirmDelete": "Delete this zone? Associated data will also be removed."
   },
   "usuario": {
     "title": "Users",
@@ -57,7 +71,11 @@
     "fechaEstimadaVenta": "Estimated sale date",
     "descripcion": "Description",
     "imagenUrl": "Image",
-    "zona": "Zone"
+    "zona": "Zone",
+    "new": "New Plant",
+    "edit": "Edit Plant",
+    "noData": "No plants registered.",
+    "confirmDelete": "Delete this plant?"
   },
   "sensor": {
     "title": "Sensors",
@@ -69,7 +87,14 @@
     "umbralMaximo": "Max threshold",
     "estado": "Status",
     "ultimaLectura": "Last reading",
-    "zona": "Zone"
+    "zona": "Zone",
+    "new": "New Sensor",
+    "edit": "Edit Sensor",
+    "noData": "No sensors registered.",
+    "confirmDelete": "Delete this sensor?",
+    "registrarLectura": "Register Reading",
+    "lecturaInfo": "Enter the new value. If it is out of the configured range, an alert will be generated automatically.",
+    "addLectura": "+ Reading"
   },
   "lectura": {
     "title": "Readings",
@@ -85,7 +110,10 @@
     "leida": "Read",
     "valorRegistrado": "Recorded value",
     "timestamp": "Timestamp",
-    "sensor": "Sensor"
+    "sensor": "Sensor",
+    "noData": "No alerts registered.",
+    "marcarLeida": "Mark as read",
+    "leida_badge": "Read"
   },
   "cliente": {
     "title": "Clients",
@@ -93,7 +121,37 @@
     "email": "Email",
     "telefono": "Phone",
     "ciudad": "City",
-    "activo": "Active"
+    "activo": "Active",
+    "new": "New Client",
+    "edit": "Edit Client",
+    "noData": "No clients registered.",
+    "confirmDelete": "Delete this client?"
+  },
+  "dashboard": {
+    "loading": "Loading greenhouse...",
+    "subtitle": "Greenhouse overview",
+    "goodMorning": "Good morning",
+    "goodAfternoon": "Good afternoon",
+    "goodEvening": "Good evening",
+    "sensorStatus": "Sensor status",
+    "chart": {
+      "normal": "Current values — standard-range sensors",
+      "high": "Current values — high-range sensors"
+    },
+    "kpi": {
+      "activeZones": "Active zones",
+      "activeSensors": "Active sensors",
+      "readyForSale": "Ready for sale",
+      "unreadAlerts": "Unread alerts",
+      "ofTotal": "of {{total}} total",
+      "ofPlants": "of {{total}} plants",
+      "reviewRequired": "Review required",
+      "allGood": "All good"
+    },
+    "empty": {
+      "title": "The greenhouse is empty",
+      "hint": "Start by creating zones and sensors from the side menu."
+    }
   },
   "venta": {
     "title": "Sales",
@@ -106,6 +164,8 @@
     "fecha": "Date",
     "planta": "Plant",
     "cliente": "Client",
-    "registradoPor": "Registered by"
+    "registradoPor": "Registered by",
+    "new": "New Sale",
+    "noData": "No sales registered."
   }
 }

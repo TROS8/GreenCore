@@ -1,12 +1,13 @@
 /**
  * GreenCore — Sistema de gestion de invernadero
  * Vista principal del dashboard con estadisticas del invernadero.
- * Rediseniado con cards modernas, gradientes y mejor organizacion visual.
+ * Dos graficas separadas: sensores de rango normal (≤100) y rango alto (>100).
  *
  * @module components/Dashboard
- * @version 1.0.0
+ * @version 2.0.0
  */
 import React, { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip,
   ResponsiveContainer, CartesianGrid
@@ -33,6 +34,7 @@ function KpiCard({ label, value, gradient, icon, sub }) {
 // ── Sensor Card ───────────────────────────────────────────────────────────────
 
 function SensorCard({ sensor }) {
+  const { t } = useTranslation()
   const pct = sensor.umbralMaximo > sensor.umbralMinimo
     ? Math.min(100, Math.max(0,
         ((sensor.valorActual ?? 0) - sensor.umbralMinimo) /
@@ -56,7 +58,7 @@ function SensorCard({ sensor }) {
         <div className="flex flex-col items-end gap-1">
           {outOfRange && (
             <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-semibold">
-              Fuera de rango
+              {t('lectura.fueraDeRango')}
             </span>
           )}
           <span className={`text-xs px-2 py-0.5 rounded-full font-medium
@@ -107,9 +109,41 @@ function CustomTooltip({ active, payload, label }) {
   )
 }
 
+// ── Grafica de area reutilizable ──────────────────────────────────────────────
+
+function SensorAreaChart({ data, gradientId, strokeColor, title }) {
+  return (
+    <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+      <h3 className="text-base font-bold text-slate-700 mb-4">{title}</h3>
+      <div className="h-64">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={data} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
+            <defs>
+              <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%"  stopColor={strokeColor} stopOpacity={0.25}/>
+                <stop offset="95%" stopColor={strokeColor} stopOpacity={0}/>
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+            <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+            <Tooltip content={<CustomTooltip />} />
+            <Area
+              type="monotone" dataKey="valor" stroke={strokeColor} strokeWidth={2.5}
+              fill={`url(#${gradientId})`} dot={{ r: 4, fill: strokeColor, strokeWidth: 0 }}
+              name="Valor"
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  )
+}
+
 // ── Dashboard principal ───────────────────────────────────────────────────────
 
 export default function Dashboard() {
+  const { t } = useTranslation()
   const user    = useStore((s) => s.user)
   const role    = useStore((s) => s.role)
   const [sensors,  setSensors]  = useState([])
@@ -131,17 +165,21 @@ export default function Dashboard() {
   const plantasVenta    = plantas.filter((p) => p.estado === 'LISTA_VENTA').length
   const alertasNoLeidas = alertas.length
 
-  const chartData = sensors
-    .filter((s) => s.valorActual != null)
-    .map((s) => ({
-      name:  s.codigo,
-      valor: s.valorActual,
-      max:   s.umbralMaximo,
-      min:   s.umbralMinimo,
-    }))
+  // Separar sensores por rango: normal (≤100) y alto (>100)
+  const sensoresConValor   = sensors.filter((s) => s.valorActual != null)
+  const chartNormal = sensoresConValor
+    .filter((s) => s.umbralMaximo <= 100)
+    .map((s) => ({ name: s.codigo, valor: s.valorActual, max: s.umbralMaximo, min: s.umbralMinimo }))
+  const chartAlto   = sensoresConValor
+    .filter((s) => s.umbralMaximo > 100)
+    .map((s) => ({ name: s.codigo, valor: s.valorActual, max: s.umbralMaximo, min: s.umbralMinimo }))
 
-  const hora = new Date().getHours()
-  const saludo = hora < 12 ? 'Buenos días' : hora < 18 ? 'Buenas tardes' : 'Buenas noches'
+  const hora    = new Date().getHours()
+  const saludo  = hora < 12
+    ? t('dashboard.goodMorning')
+    : hora < 18
+    ? t('dashboard.goodAfternoon')
+    : t('dashboard.goodEvening')
 
   if (loading) {
     return (
@@ -150,7 +188,7 @@ export default function Dashboard() {
           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
         </svg>
-        <p className="text-sm">Cargando invernadero...</p>
+        <p className="text-sm">{t('dashboard.loading')}</p>
       </div>
     )
   }
@@ -165,7 +203,7 @@ export default function Dashboard() {
             {saludo}{user?.nombre ? `, ${user.nombre.split(' ')[0]}` : ''} 👋
           </h1>
           <p className="text-slate-500 text-sm mt-0.5">
-            Resumen del invernadero · {new Date().toLocaleDateString('es-CO', { weekday:'long', day:'numeric', month:'long' })}
+            {t('dashboard.subtitle')} · {new Date().toLocaleDateString('es-CO', { weekday:'long', day:'numeric', month:'long' })}
           </p>
         </div>
         {role && (
@@ -181,71 +219,61 @@ export default function Dashboard() {
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard
-          label="Zonas activas"
+          label={t('dashboard.kpi.activeZones')}
           value={zonasActivas}
           gradient="bg-gradient-to-br from-emerald-500 to-teal-600"
           icon="🌿"
-          sub={`de ${zonas.length} totales`}
+          sub={t('dashboard.kpi.ofTotal', { total: zonas.length })}
         />
         <KpiCard
-          label="Sensores activos"
+          label={t('dashboard.kpi.activeSensors')}
           value={sensoresActivos}
           gradient="bg-gradient-to-br from-blue-500 to-indigo-600"
           icon="📡"
-          sub={`de ${sensors.length} totales`}
+          sub={t('dashboard.kpi.ofTotal', { total: sensors.length })}
         />
         <KpiCard
-          label="Listas p/ venta"
+          label={t('dashboard.kpi.readyForSale')}
           value={plantasVenta}
           gradient="bg-gradient-to-br from-teal-500 to-cyan-600"
           icon="🌱"
-          sub={`de ${plantas.length} plantas`}
+          sub={t('dashboard.kpi.ofPlants', { total: plantas.length })}
         />
         <KpiCard
-          label="Alertas sin leer"
+          label={t('dashboard.kpi.unreadAlerts')}
           value={alertasNoLeidas}
           gradient={alertasNoLeidas > 0
             ? "bg-gradient-to-br from-red-500 to-rose-600"
             : "bg-gradient-to-br from-slate-400 to-slate-500"}
           icon={alertasNoLeidas > 0 ? '🚨' : '✅'}
-          sub={alertasNoLeidas > 0 ? 'Revisión requerida' : 'Todo en orden'}
+          sub={alertasNoLeidas > 0 ? t('dashboard.kpi.reviewRequired') : t('dashboard.kpi.allGood')}
         />
       </div>
 
-      {/* Gráfico de sensores */}
-      {chartData.length > 0 && (
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
-          <h3 className="text-base font-bold text-slate-700 mb-4">
-            Valores actuales de sensores
-          </h3>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorValor" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%"  stopColor="#10b981" stopOpacity={0.25}/>
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-                <Tooltip content={<CustomTooltip />} />
-                <Area
-                  type="monotone" dataKey="valor" stroke="#10b981" strokeWidth={2.5}
-                  fill="url(#colorValor)" dot={{ r: 4, fill: '#10b981', strokeWidth: 0 }}
-                  name="Valor"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+      {/* Grafica 1 — Sensores de rango normal (umbralMaximo ≤ 100) */}
+      {chartNormal.length > 0 && (
+        <SensorAreaChart
+          data={chartNormal}
+          gradientId="colorNormal"
+          strokeColor="#10b981"
+          title={t('dashboard.chart.normal')}
+        />
+      )}
+
+      {/* Grafica 2 — Sensores de rango alto (umbralMaximo > 100) */}
+      {chartAlto.length > 0 && (
+        <SensorAreaChart
+          data={chartAlto}
+          gradientId="colorAlto"
+          strokeColor="#6366f1"
+          title={t('dashboard.chart.high')}
+        />
       )}
 
       {/* Cards de sensores */}
       {sensors.length > 0 && (
         <div>
-          <h3 className="text-base font-bold text-slate-700 mb-3">Estado de sensores</h3>
+          <h3 className="text-base font-bold text-slate-700 mb-3">{t('dashboard.sensorStatus')}</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {sensors.map((s) => <SensorCard key={s.id} sensor={s} />)}
           </div>
@@ -256,8 +284,8 @@ export default function Dashboard() {
       {sensors.length === 0 && zonas.length === 0 && (
         <div className="flex flex-col items-center justify-center py-16 text-slate-400 gap-3">
           <span className="text-6xl">🌿</span>
-          <p className="text-lg font-semibold">El invernadero está vacío</p>
-          <p className="text-sm">Comienza creando zonas y sensores desde el menú lateral.</p>
+          <p className="text-lg font-semibold">{t('dashboard.empty.title')}</p>
+          <p className="text-sm">{t('dashboard.empty.hint')}</p>
         </div>
       )}
     </div>

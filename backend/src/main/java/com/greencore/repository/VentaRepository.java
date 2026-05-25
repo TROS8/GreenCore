@@ -18,4 +18,6 @@ import java.util.List;
 public interface VentaRepository extends JpaRepository<Venta, Long> {
     List<Venta> findByClienteId(Long clienteId);
     List<Venta> findByFechaBetween(LocalDateTime from, LocalDateTime to);
+    /** Cuenta ventas cuyo número de factura empieza con el prefijo dado (para generar secuencia). */
+    long countByNumeroFacturaStartingWith(String prefix);
 }

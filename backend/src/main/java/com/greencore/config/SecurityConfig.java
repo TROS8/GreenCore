@@ -13,6 +13,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -68,6 +69,7 @@ public class SecurityConfig {
                         })
                 )
                 .authorizeHttpRequests(authorize -> authorize
+                        // ── Endpoints publicos ──────────────────────────────
                         .requestMatchers(
                                 "/api/v1/auth/**",
                                 "/swagger-ui/**",
@@ -77,6 +79,26 @@ public class SecurityConfig {
                                 "/actuator/health",   // health-check para CI/CD
                                 "/actuator/info"
                         ).permitAll()
+
+                        // ── Gestion de usuarios: solo ADMIN puede borrar ───
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/usuarios/**")
+                                .hasRole("ADMIN")
+                        // ADMIN y OPERARIO pueden ver usuarios
+                        .requestMatchers(HttpMethod.GET, "/api/v1/usuarios/**")
+                                .hasAnyRole("ADMIN", "OPERARIO")
+
+                        // ── Operaciones de escritura: ADMIN + OPERARIO ─────
+                        // VISUALIZADOR es de solo lectura
+                        .requestMatchers(HttpMethod.POST,   "/api/v1/**")
+                                .hasAnyRole("ADMIN", "OPERARIO")
+                        .requestMatchers(HttpMethod.PUT,    "/api/v1/**")
+                                .hasAnyRole("ADMIN", "OPERARIO")
+                        .requestMatchers(HttpMethod.PATCH,  "/api/v1/**")
+                                .hasAnyRole("ADMIN", "OPERARIO")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/**")
+                                .hasAnyRole("ADMIN", "OPERARIO")
+
+                        // ── Lectura: cualquier usuario autenticado ─────────
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2

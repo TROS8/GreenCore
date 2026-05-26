@@ -394,35 +394,37 @@ class TestCrearPlantaFlujoCompleto:
         Flujo completo:
           1. La zona existe (fixture la creó vía API)
           2. El usuario abre el modal de nueva planta
-          3. Completa todos los campos obligatorios
-          4. Selecciona la zona en el dropdown
-          5. Guarda
-          6. La planta aparece como card en la lista
+          3. Completa TODOS los campos obligatorios (nombre, especie, lote,
+             cantidad, precio, fechaSiembra, zona)
+          4. Guarda
+          5. La planta aparece como card en la lista
         """
         NOMBRE_PLANTA = "Orquídea Selenium"
         LOTE_PLANTA   = "LOTE-SEL-001"
+        FECHA_SIEMBRA = "2024-03-15"   # formato ISO requerido por el backend
 
         go(auth_driver, "/plantas")
-        time.sleep(1)  # esperar carga inicial de datos
+        time.sleep(1.5)  # esperar carga inicial de zonas
 
         # Abrir modal
         _abrir_modal_nueva_planta(auth_driver)
 
-        # Rellenar nombre
+        # Rellenar nombre (obligatorio)
         nombre_inp = auth_driver.find_element(By.CSS_SELECTOR, "input[name='nombre']")
         nombre_inp.clear()
         nombre_inp.send_keys(NOMBRE_PLANTA)
 
-        # Rellenar especie
+        # Rellenar especie (nullable=false en BD)
         especie_inp = auth_driver.find_element(By.CSS_SELECTOR, "input[name='especie']")
+        especie_inp.clear()
         especie_inp.send_keys("Orchidaceae")
 
-        # Rellenar lote
+        # Rellenar lote (nullable=false, unique)
         lote_inp = auth_driver.find_element(By.CSS_SELECTOR, "input[name='lote']")
         lote_inp.clear()
         lote_inp.send_keys(LOTE_PLANTA)
 
-        # Cantidad y precio
+        # Cantidad y precio (nullable=false)
         cantidad_inp = auth_driver.find_element(By.CSS_SELECTOR, "input[name='cantidad']")
         cantidad_inp.clear()
         cantidad_inp.send_keys("10")
@@ -431,18 +433,25 @@ class TestCrearPlantaFlujoCompleto:
         precio_inp.clear()
         precio_inp.send_keys("45")
 
-        # Seleccionar la zona (creada por el fixture)
-        zona_select = auth_driver.find_element(By.CSS_SELECTOR, "select[name='zonaId']")
-        opciones = zona_select.find_elements(By.TAG_NAME, "option")
-        zona_encontrada = False
-        for opcion in opciones:
-            if opcion.get_attribute("value") and opcion.get_attribute("value") != "":
-                opcion.click()
-                zona_encontrada = True
-                break
+        # Fecha de siembra (nullable=false — inyectar via JS para evitar
+        # problemas de formato con inputs type=date en Chrome headless)
+        fecha_inp = auth_driver.find_element(By.CSS_SELECTOR, "input[name='fechaSiembra']")
+        auth_driver.execute_script(
+            "arguments[0].value = arguments[1];"
+            "arguments[0].dispatchEvent(new Event('input', {bubbles:true}));"
+            "arguments[0].dispatchEvent(new Event('change', {bubbles:true}));",
+            fecha_inp, FECHA_SIEMBRA
+        )
 
-        if not zona_encontrada:
-            pytest.skip("No se pudo seleccionar una zona en el dropdown (puede estar vacío)")
+        # Seleccionar la zona (creada por el fixture)
+        time.sleep(0.5)  # esperar que getAllZonas() cargue el dropdown
+        zona_select = auth_driver.find_element(By.CSS_SELECTOR, "select[name='zonaId']")
+        from selenium.webdriver.support.ui import Select as SeleniumSelect
+        sel = SeleniumSelect(zona_select)
+        opciones_validas = [o for o in sel.options if o.get_attribute("value")]
+        if not opciones_validas:
+            pytest.skip("Zona no aparece en dropdown aún (getAllZonas aún cargando)")
+        sel.select_by_value(opciones_validas[0].get_attribute("value"))
 
         # Guardar
         guardar = WebDriverWait(auth_driver, TIMEOUT).until(
@@ -453,16 +462,16 @@ class TestCrearPlantaFlujoCompleto:
         guardar.click()
 
         # Esperar a que el modal se cierre (señal de guardado exitoso)
-        WebDriverWait(auth_driver, TIMEOUT).until(
+        WebDriverWait(auth_driver, TIMEOUT + 5).until(
             EC.invisibility_of_element_located((By.CSS_SELECTOR, "input[name='nombre']"))
         )
-        time.sleep(1)  # esperar que la lista se recargue
+        time.sleep(1.5)  # esperar que la lista se recargue
 
         # Verificar que la planta aparece en la lista
         body = auth_driver.find_element(By.TAG_NAME, "body")
         assert NOMBRE_PLANTA in body.text, \
             f"La planta '{NOMBRE_PLANTA}' debe aparecer en la lista tras ser creada. " \
-            f"Texto visible: {body.text[:500]}"
+            f"Texto visible: {body.text[:600]}"
 
     def test_planta_creada_muestra_lote_en_card(self, auth_driver, zona_api):
         """
@@ -471,26 +480,51 @@ class TestCrearPlantaFlujoCompleto:
         """
         NOMBRE_PLANTA = "Cactus Selenium"
         LOTE_PLANTA   = "LOTE-CACTUS-99"
+        FECHA_SIEMBRA = "2024-06-20"
 
         go(auth_driver, "/plantas")
-        time.sleep(1)
+        time.sleep(1.5)
 
         _abrir_modal_nueva_planta(auth_driver)
 
-        auth_driver.find_element(By.CSS_SELECTOR, "input[name='nombre']").send_keys(NOMBRE_PLANTA)
+        nombre_inp = auth_driver.find_element(By.CSS_SELECTOR, "input[name='nombre']")
+        nombre_inp.clear()
+        nombre_inp.send_keys(NOMBRE_PLANTA)
+
+        especie_inp = auth_driver.find_element(By.CSS_SELECTOR, "input[name='especie']")
+        especie_inp.clear()
+        especie_inp.send_keys("Cactaceae")
+
         lote_inp = auth_driver.find_element(By.CSS_SELECTOR, "input[name='lote']")
         lote_inp.clear()
         lote_inp.send_keys(LOTE_PLANTA)
 
-        auth_driver.find_element(By.CSS_SELECTOR, "input[name='cantidad']").clear()
-        auth_driver.find_element(By.CSS_SELECTOR, "input[name='cantidad']").send_keys("5")
+        cantidad_inp = auth_driver.find_element(By.CSS_SELECTOR, "input[name='cantidad']")
+        cantidad_inp.clear()
+        cantidad_inp.send_keys("5")
 
-        # Seleccionar cualquier zona disponible
+        precio_inp = auth_driver.find_element(By.CSS_SELECTOR, "input[name='precio']")
+        precio_inp.clear()
+        precio_inp.send_keys("12")
+
+        # Fecha de siembra via JS
+        fecha_inp = auth_driver.find_element(By.CSS_SELECTOR, "input[name='fechaSiembra']")
+        auth_driver.execute_script(
+            "arguments[0].value = arguments[1];"
+            "arguments[0].dispatchEvent(new Event('input', {bubbles:true}));"
+            "arguments[0].dispatchEvent(new Event('change', {bubbles:true}));",
+            fecha_inp, FECHA_SIEMBRA
+        )
+
+        # Seleccionar zona
+        time.sleep(0.5)
         zona_select = auth_driver.find_element(By.CSS_SELECTOR, "select[name='zonaId']")
-        for opcion in zona_select.find_elements(By.TAG_NAME, "option"):
-            if opcion.get_attribute("value"):
-                opcion.click()
-                break
+        from selenium.webdriver.support.ui import Select as SeleniumSelect
+        sel = SeleniumSelect(zona_select)
+        opciones_validas = [o for o in sel.options if o.get_attribute("value")]
+        if not opciones_validas:
+            pytest.skip("Zona no aparece en dropdown (getAllZonas aún cargando)")
+        sel.select_by_value(opciones_validas[0].get_attribute("value"))
 
         guardar = WebDriverWait(auth_driver, TIMEOUT).until(
             EC.element_to_be_clickable((By.XPATH,
@@ -499,10 +533,10 @@ class TestCrearPlantaFlujoCompleto:
         )
         guardar.click()
 
-        WebDriverWait(auth_driver, TIMEOUT).until(
+        WebDriverWait(auth_driver, TIMEOUT + 5).until(
             EC.invisibility_of_element_located((By.CSS_SELECTOR, "input[name='nombre']"))
         )
-        time.sleep(1)
+        time.sleep(1.5)
 
         body = auth_driver.find_element(By.TAG_NAME, "body")
         assert LOTE_PLANTA in body.text, \

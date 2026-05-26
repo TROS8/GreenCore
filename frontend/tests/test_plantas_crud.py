@@ -37,6 +37,31 @@ from conftest import go, find, TIMEOUT, BASE_URL, BACKEND_URL, generate_test_tok
 
 # ── Helpers internos ──────────────────────────────────────────────────────────
 
+def _set_react_date(driver, element, iso_date):
+    """
+    Fija el valor de un input[type=date] React 18 controlado de forma fiable.
+
+    El problema con React 18 y controlled inputs: setear input.value via JS simple
+    NO actualiza el estado interno del fiber porque React usa su propio valueTracker.
+    La solución es llamar al native setter del prototipo HTMLInputElement, que fuerza
+    a React a detectar el cambio cuando se despacha el evento 'input'.
+
+    iso_date: formato YYYY-MM-DD (ej: '2024-03-15')
+    """
+    driver.execute_script(
+        """
+        var nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+            window.HTMLInputElement.prototype, 'value'
+        ).set;
+        nativeInputValueSetter.call(arguments[0], arguments[1]);
+        arguments[0].dispatchEvent(new Event('input',  { bubbles: true, cancelable: true }));
+        arguments[0].dispatchEvent(new Event('change', { bubbles: true, cancelable: true }));
+        """,
+        element, iso_date
+    )
+    time.sleep(0.25)   # dar tiempo al scheduler de React 18 para procesar el update
+
+
 def _api_headers():
     """Cabeceras HTTP autenticadas para llamadas directas al backend."""
     token = generate_test_token()
@@ -433,18 +458,13 @@ class TestCrearPlantaFlujoCompleto:
         precio_inp.clear()
         precio_inp.send_keys("45")
 
-        # Fecha de siembra (nullable=false — inyectar via JS para evitar
-        # problemas de formato con inputs type=date en Chrome headless)
+        # Fecha de siembra (nullable=false — usar nativeInputValueSetter para que
+        # React 18 actualice su estado interno correctamente)
         fecha_inp = auth_driver.find_element(By.CSS_SELECTOR, "input[name='fechaSiembra']")
-        auth_driver.execute_script(
-            "arguments[0].value = arguments[1];"
-            "arguments[0].dispatchEvent(new Event('input', {bubbles:true}));"
-            "arguments[0].dispatchEvent(new Event('change', {bubbles:true}));",
-            fecha_inp, FECHA_SIEMBRA
-        )
+        _set_react_date(auth_driver, fecha_inp, FECHA_SIEMBRA)
 
         # Seleccionar la zona (creada por el fixture)
-        time.sleep(0.5)  # esperar que getAllZonas() cargue el dropdown
+        time.sleep(0.8)  # esperar que getAllZonas() cargue el dropdown
         zona_select = auth_driver.find_element(By.CSS_SELECTOR, "select[name='zonaId']")
         from selenium.webdriver.support.ui import Select as SeleniumSelect
         sel = SeleniumSelect(zona_select)
@@ -507,17 +527,12 @@ class TestCrearPlantaFlujoCompleto:
         precio_inp.clear()
         precio_inp.send_keys("12")
 
-        # Fecha de siembra via JS
+        # Fecha de siembra via nativeInputValueSetter (React 18 compatible)
         fecha_inp = auth_driver.find_element(By.CSS_SELECTOR, "input[name='fechaSiembra']")
-        auth_driver.execute_script(
-            "arguments[0].value = arguments[1];"
-            "arguments[0].dispatchEvent(new Event('input', {bubbles:true}));"
-            "arguments[0].dispatchEvent(new Event('change', {bubbles:true}));",
-            fecha_inp, FECHA_SIEMBRA
-        )
+        _set_react_date(auth_driver, fecha_inp, FECHA_SIEMBRA)
 
         # Seleccionar zona
-        time.sleep(0.5)
+        time.sleep(0.8)
         zona_select = auth_driver.find_element(By.CSS_SELECTOR, "select[name='zonaId']")
         from selenium.webdriver.support.ui import Select as SeleniumSelect
         sel = SeleniumSelect(zona_select)

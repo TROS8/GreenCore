@@ -62,7 +62,14 @@ export function PlantaList() {
   const handleSave = async () => {
     setSaving(true); setError(null)
     try {
-      const payload = { ...form, zona: form.zonaId ? { id: parseInt(form.zonaId) } : null }
+      // Convertir strings vacíos a null en campos de fecha para que Jackson
+      // no falle al deserializar "" como LocalDate (solo null es válido para fechas opcionales)
+      const payload = {
+        ...form,
+        fechaSiembra:       form.fechaSiembra       || null,
+        fechaEstimadaVenta: form.fechaEstimadaVenta || null,
+        zona: form.zonaId ? { id: parseInt(form.zonaId) } : null,
+      }
       if (modal === 'edit') await updatePlanta(form.id, payload)
       else                  await createPlanta(payload)
       closeModal(); reload()

@@ -2,10 +2,17 @@
 Configuracion global de pruebas Selenium para GreenCore Frontend.
 Genera un JWT de prueba, lo inyecta en localStorage (Zustand persist)
 y expone fixtures reutilizables para todos los tests.
+
+Integración con Taiga:
+    Cuando una prueba falla se crea automáticamente una User Story en Taiga
+    con el detalle del error. Requiere las variables de entorno:
+        TAIGA_USERNAME, TAIGA_PASSWORD, TAIGA_PROJECT
+    Si no están configuradas, el fallo se ignora silenciosamente.
 """
 import json
 import time
 import os
+import sys
 import pytest
 import jwt as pyjwt
 from selenium import webdriver
@@ -16,11 +23,28 @@ from selenium.webdriver.common.by import By
 
 # ── Constantes ────────────────────────────────────────────────────────────────
 BASE_URL    = os.environ.get("FRONTEND_URL", "http://localhost:5173")
-JWT_SECRET  = os.environ.get("JWT_SECRET", "test-jwt-secret-for-junit-only")
+BACKEND_URL = os.environ.get("BACKEND_URL",  "http://localhost:8080")
+JWT_SECRET  = os.environ.get("JWT_SECRET",   "test-jwt-secret-for-junit-only")
 TEST_EMAIL  = "selenium-test@gmail.com"
 TEST_NAME   = "Selenium Tester"
 TEST_ROLE   = "ADMIN"
-TIMEOUT     = 15  # segundos de espera maxima (aumentado para CI)
+TIMEOUT     = 15  # segundos de espera maxima
+
+
+# ── Taiga reporter (opcional) ─────────────────────────────────────────────────
+# Se busca taiga_reporter en taiga-client/ (../../taiga-client relativo a este archivo)
+_TAIGA_REPORTER_AVAILABLE = False
+try:
+    _taiga_client_path = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "..", "..", "taiga-client")
+    )
+    if _taiga_client_path not in sys.path:
+        sys.path.insert(0, _taiga_client_path)
+    from taiga_reporter import get_reporter as _get_taiga_reporter
+    _TAIGA_REPORTER_AVAILABLE = True
+    print("[conftest] Taiga reporter cargado correctamente.")
+except ImportError:
+    print("[conftest] Taiga reporter no disponible (se continua sin el).")
 
 
 # ── Generador de token ────────────────────────────────────────────────────────
@@ -117,31 +141,59 @@ def auth_driver(driver):
     return driver
 
 
-# ── Hook: screenshot en fallo ──────────────────────────────────────────────────
+# ── Hook: screenshot + reporte Taiga en fallo ─────────────────────────────────
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
 def pytest_runtest_makereport(item, call):
-    """Captura screenshot cuando un test falla."""
+    """
+    Al fallar un test:
+      1. Captura screenshot y guarda en /tmp/screenshots/
+      2. Imprime el texto del body para depuracion
+      3. Crea automáticamente una User Story en Taiga con los detalles del fallo
+    """
     outcome = yield
     rep = outcome.get_result()
+
     if rep.when == "call" and rep.failed:
-        driver = None
+        # ── 1. Obtener driver ────────────────────────────────────────────────
+        drv = None
         for fixture_name in ("auth_driver", "driver"):
-            driver = item.funcargs.get(fixture_name)
-            if driver:
+            drv = item.funcargs.get(fixture_name)
+            if drv:
                 break
-        if driver:
+
+        screenshot_path = ""
+
+        # ── 2. Screenshot ────────────────────────────────────────────────────
+        if drv:
             screenshots_dir = "/tmp/screenshots"
             os.makedirs(screenshots_dir, exist_ok=True)
             safe_name = rep.nodeid.replace("/", "_").replace("::", "_").replace(" ", "_")
-            path = f"{screenshots_dir}/{safe_name}.png"
+            screenshot_path = f"{screenshots_dir}/{safe_name}.png"
             try:
-                driver.save_screenshot(path)
-                print(f"\n[screenshot] Saved to {path}")
-                # Print body text for debugging
-                body = driver.find_element(By.TAG_NAME, "body")
+                drv.save_screenshot(screenshot_path)
+                print(f"\n[screenshot] Saved to {screenshot_path}")
+                body = drv.find_element(By.TAG_NAME, "body")
                 print(f"[body_text] {body.text[:800]}")
-            except Exception as e:
-                print(f"\n[screenshot] Failed to save: {e}")
+            except Exception as exc:
+                print(f"\n[screenshot] Failed to save: {exc}")
+                screenshot_path = ""
+
+        # ── 3. Reporte automático en Taiga ───────────────────────────────────
+        if _TAIGA_REPORTER_AVAILABLE:
+            try:
+                reporter = _get_taiga_reporter()
+                if reporter.enabled:
+                    error_msg = str(rep.longrepr) if rep.longrepr else "Error desconocido"
+                    reporter.report_failure(
+                        test_nodeid=rep.nodeid,
+                        error_message=error_msg,
+                        screenshot_path=screenshot_path,
+                    )
+                else:
+                    print("\n[Taiga] Credenciales no configuradas — se omite el reporte.")
+            except Exception as exc:
+                # Nunca debe interrumpir el flujo de pytest
+                print(f"\n[Taiga] Error al reportar fallo (no critico): {exc}")
 
 
 # ── Fixture: wait helper ───────────────────────────────────────────────────────

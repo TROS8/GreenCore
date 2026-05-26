@@ -220,6 +220,11 @@ jobs:
           FRONTEND_URL: http://localhost:5173
           BACKEND_URL: http://localhost:8080
           JWT_SECRET: ${{ env.JWT_SECRET_TEST }}
+          # Taiga: cuando un test falla se crea un issue automáticamente
+          TAIGA_URL:      https://api.taiga.io
+          TAIGA_USERNAME: ${{ secrets.TAIGA_USERNAME }}
+          TAIGA_PASSWORD: ${{ secrets.TAIGA_PASSWORD }}
+          TAIGA_PROJECT:  ${{ secrets.TAIGA_PROJECT }}
         run: |
           pytest frontend/tests/ -v \
             --html=frontend/tests/selenium-report.html \

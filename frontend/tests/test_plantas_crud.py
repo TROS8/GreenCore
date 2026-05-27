@@ -47,8 +47,24 @@ def _api_headers():
 
 
 def _abrir_modal_nueva_planta(driver):
-    """Navega a /plantas y abre el modal de creacion. Devuelve True si el modal abrió."""
+    """
+    Navega a /plantas, espera que getAllPlantas+getAllZonas completen,
+    y luego abre el modal de creacion. Devuelve True si el modal abrió.
+
+    Esperar a que desaparezca el spinner (.animate-spin) garantiza que la
+    promesa Promise.all([getAllPlantas(), getAllZonas()]) ya resolvió y el
+    estado 'zonas' está poblado ANTES de abrir el modal.  Así el select de
+    zona tiene opciones desde el primer render del formulario, sin necesidad
+    de sleeps adicionales tras abrir el modal.
+    """
     go(driver, "/plantas")
+    # Esperar a que el spinner desaparezca → ambas peticiones (plantas + zonas) resueltas
+    try:
+        WebDriverWait(driver, TIMEOUT).until(
+            EC.invisibility_of_element_located((By.CSS_SELECTOR, ".animate-spin"))
+        )
+    except Exception:
+        pass  # el spinner puede desaparecer antes de que lo detectemos; continuar igualmente
     btn = WebDriverWait(driver, TIMEOUT).until(
         EC.element_to_be_clickable((By.XPATH,
             "//button[contains(., '+') or contains(., 'Nueva') or contains(., 'Planta') or contains(., 'Crear')]"
@@ -399,13 +415,11 @@ class TestCrearPlantaFlujoCompleto:
           4. Guarda
           5. La planta aparece como card en la lista
         """
-        NOMBRE_PLANTA = f"Orquídea Selenium {int(time.time()) % 10000}"
+        NOMBRE_PLANTA = f"Orquidea Selenium {int(time.time()) % 10000}"
         LOTE_PLANTA   = f"LOTE-SEL-{int(time.time()) % 99999}"
 
-        go(auth_driver, "/plantas")
-        time.sleep(1.5)  # esperar carga inicial de zonas
-
-        # Abrir modal
+        # _abrir_modal_nueva_planta espera a que el spinner desaparezca antes de abrir
+        # el modal, garantizando que getAllZonas() ya resolvió y el dropdown tiene opciones.
         _abrir_modal_nueva_planta(auth_driver)
 
         # Rellenar nombre (obligatorio)
@@ -423,28 +437,37 @@ class TestCrearPlantaFlujoCompleto:
         lote_inp.clear()
         lote_inp.send_keys(LOTE_PLANTA)
 
-        # Cantidad y precio (nullable=false)
+        # Cantidad y precio: usar CTRL+A para seleccionar el valor inicial antes de
+        # reemplazarlo, evitando que clear() deje un estado inconsistente en inputs
+        # type=number. El handleSave de PlantaList convierte los strings a Number().
         cantidad_inp = auth_driver.find_element(By.CSS_SELECTOR, "input[name='cantidad']")
-        cantidad_inp.clear()
+        cantidad_inp.send_keys(Keys.CONTROL + 'a')
         cantidad_inp.send_keys("10")
 
         precio_inp = auth_driver.find_element(By.CSS_SELECTOR, "input[name='precio']")
-        precio_inp.clear()
+        precio_inp.send_keys(Keys.CONTROL + 'a')
         precio_inp.send_keys("45")
 
         # fechaSiembra ya tiene hoy como valor por defecto (PlantaList.EMPTY → TODAY).
         # No es necesario modificarlo — el backend recibe la fecha predeterminada.
 
-        # Seleccionar la zona (creada por el fixture)
-        time.sleep(1.0)  # esperar que getAllZonas() cargue el dropdown
+        # Seleccionar la zona (creada por el fixture).
+        # Las zonas ya están cargadas porque _abrir_modal_nueva_planta esperó el spinner.
         zona_select = auth_driver.find_element(By.CSS_SELECTOR, "select[name='zonaId']")
         from selenium.webdriver.support.ui import Select as SeleniumSelect
         sel = SeleniumSelect(zona_select)
         opciones_validas = [o for o in sel.options if o.get_attribute("value")]
         if not opciones_validas:
-            pytest.skip("Zona no aparece en dropdown aún (getAllZonas aún cargando)")
+            pytest.skip("Zona no aparece en dropdown — getAllZonas no devolvió datos")
         sel.select_by_value(opciones_validas[0].get_attribute("value"))
-        time.sleep(0.5)  # dejar que React procese el cambio de select
+        time.sleep(0.5)  # dejar que React procese el onChange del select
+
+        # Imprimir estado del formulario para diagnóstico en CI
+        zona_dom = auth_driver.execute_script(
+            "return document.querySelector('select[name=\"zonaId\"]').value")
+        nombre_dom = auth_driver.execute_script(
+            "return document.querySelector('input[name=\"nombre\"]').value")
+        print(f"\n[test_crear] nombre='{nombre_dom}' zonaId='{zona_dom}'")
 
         # Guardar
         guardar = WebDriverWait(auth_driver, TIMEOUT).until(
@@ -474,9 +497,7 @@ class TestCrearPlantaFlujoCompleto:
         NOMBRE_PLANTA = f"Cactus Selenium {int(time.time()) % 10000}"
         LOTE_PLANTA   = f"LOTE-CACTUS-{int(time.time()) % 99999}"
 
-        go(auth_driver, "/plantas")
-        time.sleep(1.5)
-
+        # _abrir_modal_nueva_planta espera al spinner para garantizar que getAllZonas resolvió
         _abrir_modal_nueva_planta(auth_driver)
 
         nombre_inp = auth_driver.find_element(By.CSS_SELECTOR, "input[name='nombre']")
@@ -491,27 +512,32 @@ class TestCrearPlantaFlujoCompleto:
         lote_inp.clear()
         lote_inp.send_keys(LOTE_PLANTA)
 
+        # CTRL+A para reemplazar los valores iniciales de los campos numéricos
         cantidad_inp = auth_driver.find_element(By.CSS_SELECTOR, "input[name='cantidad']")
-        cantidad_inp.clear()
+        cantidad_inp.send_keys(Keys.CONTROL + 'a')
         cantidad_inp.send_keys("5")
 
         precio_inp = auth_driver.find_element(By.CSS_SELECTOR, "input[name='precio']")
-        precio_inp.clear()
+        precio_inp.send_keys(Keys.CONTROL + 'a')
         precio_inp.send_keys("12")
 
         # fechaSiembra ya tiene hoy como valor por defecto (PlantaList.EMPTY → TODAY).
         # No es necesario modificarlo — el backend recibe la fecha predeterminada.
 
-        # Seleccionar zona
-        time.sleep(1.0)  # esperar que getAllZonas() cargue el dropdown
+        # Seleccionar zona (ya cargada gracias al spinner wait en _abrir_modal_nueva_planta)
         zona_select = auth_driver.find_element(By.CSS_SELECTOR, "select[name='zonaId']")
         from selenium.webdriver.support.ui import Select as SeleniumSelect
         sel = SeleniumSelect(zona_select)
         opciones_validas = [o for o in sel.options if o.get_attribute("value")]
         if not opciones_validas:
-            pytest.skip("Zona no aparece en dropdown (getAllZonas aún cargando)")
+            pytest.skip("Zona no aparece en dropdown — getAllZonas no devolvió datos")
         sel.select_by_value(opciones_validas[0].get_attribute("value"))
-        time.sleep(0.5)  # dejar que React procese el cambio de select
+        time.sleep(0.5)  # dejar que React procese el onChange del select
+
+        # Imprimir estado del formulario para diagnóstico en CI
+        zona_dom = auth_driver.execute_script(
+            "return document.querySelector('select[name=\"zonaId\"]').value")
+        print(f"\n[test_lote] lote='{LOTE_PLANTA}' zonaId='{zona_dom}'")
 
         guardar = WebDriverWait(auth_driver, TIMEOUT).until(
             EC.element_to_be_clickable((By.XPATH,
@@ -527,7 +553,8 @@ class TestCrearPlantaFlujoCompleto:
 
         body = auth_driver.find_element(By.TAG_NAME, "body")
         assert LOTE_PLANTA in body.text, \
-            f"El lote '{LOTE_PLANTA}' debe aparecer en la card de la planta creada"
+            f"El lote '{LOTE_PLANTA}' debe aparecer en la card de la planta creada. " \
+            f"Texto visible: {body.text[:400]}"
 
 
 # ══════════════════════════════════════════════════════════════════════════════

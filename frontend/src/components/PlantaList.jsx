@@ -66,10 +66,14 @@ export function PlantaList() {
   const handleSave = async () => {
     setSaving(true); setError(null)
     try {
-      // Convertir strings vacíos a null en campos de fecha para que Jackson
-      // no falle al deserializar "" como LocalDate (solo null es válido para fechas opcionales)
+      // Garantizar tipos correctos para Jackson:
+      //   - cantidad/precio: Selenium send_keys() deja strings ("10","45"); los
+      //     convertimos a Number para que el JSON lleve números, no strings.
+      //   - fechas opcionales: "" → null (Jackson rechaza "" como LocalDate).
       const payload = {
         ...form,
+        cantidad:           Number(form.cantidad),
+        precio:             Number(form.precio),
         fechaSiembra:       form.fechaSiembra       || null,
         fechaEstimadaVenta: form.fechaEstimadaVenta || null,
         zona: form.zonaId ? { id: parseInt(form.zonaId) } : null,

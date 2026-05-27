@@ -37,31 +37,6 @@ from conftest import go, find, TIMEOUT, BASE_URL, BACKEND_URL, generate_test_tok
 
 # ── Helpers internos ──────────────────────────────────────────────────────────
 
-def _set_react_date(driver, element, iso_date):
-    """
-    Fija el valor de un input[type=date] React 18 controlado de forma fiable.
-
-    El problema con React 18 y controlled inputs: setear input.value via JS simple
-    NO actualiza el estado interno del fiber porque React usa su propio valueTracker.
-    La solución es llamar al native setter del prototipo HTMLInputElement, que fuerza
-    a React a detectar el cambio cuando se despacha el evento 'input'.
-
-    iso_date: formato YYYY-MM-DD (ej: '2024-03-15')
-    """
-    driver.execute_script(
-        """
-        var nativeInputValueSetter = Object.getOwnPropertyDescriptor(
-            window.HTMLInputElement.prototype, 'value'
-        ).set;
-        nativeInputValueSetter.call(arguments[0], arguments[1]);
-        arguments[0].dispatchEvent(new Event('input',  { bubbles: true, cancelable: true }));
-        arguments[0].dispatchEvent(new Event('change', { bubbles: true, cancelable: true }));
-        """,
-        element, iso_date
-    )
-    time.sleep(0.25)   # dar tiempo al scheduler de React 18 para procesar el update
-
-
 def _api_headers():
     """Cabeceras HTTP autenticadas para llamadas directas al backend."""
     token = generate_test_token()
@@ -419,14 +394,13 @@ class TestCrearPlantaFlujoCompleto:
         Flujo completo:
           1. La zona existe (fixture la creó vía API)
           2. El usuario abre el modal de nueva planta
-          3. Completa TODOS los campos obligatorios (nombre, especie, lote,
-             cantidad, precio, fechaSiembra, zona)
+          3. Completa los campos obligatorios (nombre, especie, lote, cantidad, precio, zona)
+             — fechaSiembra ya tiene hoy como valor por defecto en el formulario
           4. Guarda
           5. La planta aparece como card en la lista
         """
-        NOMBRE_PLANTA = "Orquídea Selenium"
-        LOTE_PLANTA   = "LOTE-SEL-001"
-        FECHA_SIEMBRA = "2024-03-15"   # formato ISO requerido por el backend
+        NOMBRE_PLANTA = f"Orquídea Selenium {int(time.time()) % 10000}"
+        LOTE_PLANTA   = f"LOTE-SEL-{int(time.time()) % 99999}"
 
         go(auth_driver, "/plantas")
         time.sleep(1.5)  # esperar carga inicial de zonas
@@ -444,7 +418,7 @@ class TestCrearPlantaFlujoCompleto:
         especie_inp.clear()
         especie_inp.send_keys("Orchidaceae")
 
-        # Rellenar lote (nullable=false, unique)
+        # Rellenar lote único (nullable=false, unique)
         lote_inp = auth_driver.find_element(By.CSS_SELECTOR, "input[name='lote']")
         lote_inp.clear()
         lote_inp.send_keys(LOTE_PLANTA)
@@ -458,13 +432,11 @@ class TestCrearPlantaFlujoCompleto:
         precio_inp.clear()
         precio_inp.send_keys("45")
 
-        # Fecha de siembra (nullable=false — usar nativeInputValueSetter para que
-        # React 18 actualice su estado interno correctamente)
-        fecha_inp = auth_driver.find_element(By.CSS_SELECTOR, "input[name='fechaSiembra']")
-        _set_react_date(auth_driver, fecha_inp, FECHA_SIEMBRA)
+        # fechaSiembra ya tiene hoy como valor por defecto (PlantaList.EMPTY → TODAY).
+        # No es necesario modificarlo — el backend recibe la fecha predeterminada.
 
         # Seleccionar la zona (creada por el fixture)
-        time.sleep(0.8)  # esperar que getAllZonas() cargue el dropdown
+        time.sleep(1.0)  # esperar que getAllZonas() cargue el dropdown
         zona_select = auth_driver.find_element(By.CSS_SELECTOR, "select[name='zonaId']")
         from selenium.webdriver.support.ui import Select as SeleniumSelect
         sel = SeleniumSelect(zona_select)
@@ -472,6 +444,7 @@ class TestCrearPlantaFlujoCompleto:
         if not opciones_validas:
             pytest.skip("Zona no aparece en dropdown aún (getAllZonas aún cargando)")
         sel.select_by_value(opciones_validas[0].get_attribute("value"))
+        time.sleep(0.5)  # dejar que React procese el cambio de select
 
         # Guardar
         guardar = WebDriverWait(auth_driver, TIMEOUT).until(
@@ -498,9 +471,8 @@ class TestCrearPlantaFlujoCompleto:
         La card de la planta creada debe mostrar el lote asignado.
         Complementa el test anterior verificando un campo adicional.
         """
-        NOMBRE_PLANTA = "Cactus Selenium"
-        LOTE_PLANTA   = "LOTE-CACTUS-99"
-        FECHA_SIEMBRA = "2024-06-20"
+        NOMBRE_PLANTA = f"Cactus Selenium {int(time.time()) % 10000}"
+        LOTE_PLANTA   = f"LOTE-CACTUS-{int(time.time()) % 99999}"
 
         go(auth_driver, "/plantas")
         time.sleep(1.5)
@@ -527,12 +499,11 @@ class TestCrearPlantaFlujoCompleto:
         precio_inp.clear()
         precio_inp.send_keys("12")
 
-        # Fecha de siembra via nativeInputValueSetter (React 18 compatible)
-        fecha_inp = auth_driver.find_element(By.CSS_SELECTOR, "input[name='fechaSiembra']")
-        _set_react_date(auth_driver, fecha_inp, FECHA_SIEMBRA)
+        # fechaSiembra ya tiene hoy como valor por defecto (PlantaList.EMPTY → TODAY).
+        # No es necesario modificarlo — el backend recibe la fecha predeterminada.
 
         # Seleccionar zona
-        time.sleep(0.8)
+        time.sleep(1.0)  # esperar que getAllZonas() cargue el dropdown
         zona_select = auth_driver.find_element(By.CSS_SELECTOR, "select[name='zonaId']")
         from selenium.webdriver.support.ui import Select as SeleniumSelect
         sel = SeleniumSelect(zona_select)
@@ -540,6 +511,7 @@ class TestCrearPlantaFlujoCompleto:
         if not opciones_validas:
             pytest.skip("Zona no aparece en dropdown (getAllZonas aún cargando)")
         sel.select_by_value(opciones_validas[0].get_attribute("value"))
+        time.sleep(0.5)  # dejar que React procese el cambio de select
 
         guardar = WebDriverWait(auth_driver, TIMEOUT).until(
             EC.element_to_be_clickable((By.XPATH,

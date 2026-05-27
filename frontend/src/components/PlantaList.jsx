@@ -25,9 +25,13 @@ const ESTADO_COLOR = {
 
 const ESTADOS = ['SEMILLA', 'GERMINANDO', 'CRECIMIENTO', 'LISTA_VENTA', 'VENDIDA', 'BAJA']
 
+// Fecha de siembra por defecto = hoy (YYYY-MM-DD). Facilita la UX y evita
+// que el backend rechace el campo nullable=false con un string vacío.
+const TODAY = new Date().toISOString().split('T')[0]
+
 const EMPTY = {
   nombre: '', especie: '', lote: '', cantidad: 1, precio: 0,
-  estado: 'SEMILLA', fechaSiembra: '', fechaEstimadaVenta: '',
+  estado: 'SEMILLA', fechaSiembra: TODAY, fechaEstimadaVenta: '',
   descripcion: '', zonaId: '',
 }
 

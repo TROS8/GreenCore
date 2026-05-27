@@ -260,7 +260,30 @@ class TestValidacionCampos:
     """
     Verifica que los campos con tipo específico no acepten valores inválidos.
     Los inputs type='number' rechazan texto; la UI no debe guardar datos corruptos.
+
+    Nota sobre inputs React 18:
+        Los inputs controlados de React 18 requieren que el valor del DOM sea
+        actualizado a través de los eventos sintéticos de React. Para garantizar
+        que el estado interno de React se actualice correctamente al escribir en
+        campos numéricos, se usa CTRL+A → send_keys() en lugar de clear() solo,
+        ya que clear() puede no disparar el evento onChange de React en algunos
+        navegadores/versiones.
     """
+
+    @staticmethod
+    def _limpiar_y_escribir(campo, texto):
+        """
+        Limpia un input controlado por React y escribe un nuevo valor de forma
+        fiable en React 18 (compatible con inputs type='number' y type='text').
+        Usa CTRL+A + DELETE para asegurar que React reciba el evento de cambio.
+        """
+        campo.click()
+        campo.send_keys(Keys.CONTROL + 'a')
+        campo.send_keys(Keys.DELETE)
+        time.sleep(0.2)  # dar tiempo a React para procesar el clear
+        if texto:
+            campo.send_keys(texto)
+            time.sleep(0.2)  # dar tiempo a React para actualizar el estado
 
     def test_texto_en_campo_cantidad_no_se_acepta(self, auth_driver):
         """
@@ -269,8 +292,7 @@ class TestValidacionCampos:
         """
         _abrir_modal_nueva_planta(auth_driver)
         campo = auth_driver.find_element(By.CSS_SELECTOR, "input[name='cantidad']")
-        campo.clear()
-        campo.send_keys("abc")  # texto inválido para campo numérico
+        self._limpiar_y_escribir(campo, "abc")  # texto inválido para campo numérico
         valor = campo.get_attribute("value")
         assert valor == "" or valor.lstrip("-").replace(".", "").isdigit(), \
             f"Campo numérico 'cantidad' no debe aceptar texto. Valor obtenido: '{valor}'"
@@ -282,8 +304,7 @@ class TestValidacionCampos:
         """
         _abrir_modal_nueva_planta(auth_driver)
         campo = auth_driver.find_element(By.CSS_SELECTOR, "input[name='precio']")
-        campo.clear()
-        campo.send_keys("texto_invalido")
+        self._limpiar_y_escribir(campo, "texto_invalido")
         valor = campo.get_attribute("value")
         assert valor == "" or valor.lstrip("-").replace(".", "").isdigit(), \
             f"Campo numérico 'precio' no debe aceptar texto. Valor obtenido: '{valor}'"
@@ -295,8 +316,7 @@ class TestValidacionCampos:
         """
         _abrir_modal_nueva_planta(auth_driver)
         campo = auth_driver.find_element(By.CSS_SELECTOR, "input[name='cantidad']")
-        campo.clear()
-        campo.send_keys("12abc")
+        self._limpiar_y_escribir(campo, "12abc")
         valor = campo.get_attribute("value")
         # El resultado válido puede ser "12" (Chrome filtra 'abc') o ""
         assert valor == "" or valor.lstrip("-").replace(".", "").isdigit(), \
@@ -306,8 +326,7 @@ class TestValidacionCampos:
         """El campo nombre (texto libre) sí debe aceptar caracteres alfanuméricos."""
         _abrir_modal_nueva_planta(auth_driver)
         campo = auth_driver.find_element(By.CSS_SELECTOR, "input[name='nombre']")
-        campo.clear()
-        campo.send_keys("Rosa del Desierto")
+        self._limpiar_y_escribir(campo, "Rosa del Desierto")
         assert campo.get_attribute("value") == "Rosa del Desierto", \
             "El campo nombre (texto) debe aceptar texto"
 
@@ -315,51 +334,66 @@ class TestValidacionCampos:
         """Un número entero positivo debe ser aceptado en el campo cantidad."""
         _abrir_modal_nueva_planta(auth_driver)
         campo = auth_driver.find_element(By.CSS_SELECTOR, "input[name='cantidad']")
-        campo.clear()
-        campo.send_keys("25")
-        assert campo.get_attribute("value") == "25", \
-            "El campo 'cantidad' debe aceptar enteros positivos"
+        self._limpiar_y_escribir(campo, "25")
+        valor = campo.get_attribute("value")
+        assert valor == "25", \
+            f"El campo 'cantidad' debe aceptar enteros positivos. Valor obtenido: '{valor}'"
 
     def test_precio_decimal_valido(self, auth_driver):
         """Un precio con decimales debe ser aceptado en el campo precio."""
         _abrir_modal_nueva_planta(auth_driver)
         campo = auth_driver.find_element(By.CSS_SELECTOR, "input[name='precio']")
-        campo.clear()
-        campo.send_keys("9.99")
+        self._limpiar_y_escribir(campo, "9.99")
         valor = campo.get_attribute("value")
         assert "9" in valor, \
             f"El campo 'precio' debe aceptar decimales. Obtenido: '{valor}'"
 
-    def test_guardar_sin_nombre_muestra_error_backend(self, auth_driver):
+    def test_guardar_sin_nombre_muestra_error(self, auth_driver):
         """
         Intentar guardar con 'nombre' vacío debe mostrar un mensaje de error
-        (el backend rechaza la petición y la UI muestra el ErrorBanner).
+        en el ErrorBanner y mantener el modal abierto.
+
+        Con la validación frontend en PlantaList.handleSave(), cuando 'nombre'
+        está vacío se llama setError() ANTES de hacer cualquier llamada al backend,
+        por lo que el error se muestra de forma inmediata y determinista,
+        sin depender del comportamiento del backend.
         """
         _abrir_modal_nueva_planta(auth_driver)
-        # El campo nombre está vacío por defecto; hacer click en Guardar directamente
+        # El campo nombre está vacío por defecto (EMPTY.nombre = ''); click en Guardar
         guardar = WebDriverWait(auth_driver, TIMEOUT).until(
             EC.element_to_be_clickable((By.XPATH,
                 "//button[contains(., 'Guardar') or contains(., 'Save')]"
             ))
         )
         guardar.click()
-        time.sleep(1.5)  # esperar respuesta del backend
+        time.sleep(0.8)  # la validación frontend es síncrona; 0.8s es amplio
 
-        # Buscar el banner de error (ErrorBanner en ui.jsx) o mensaje de validación
         body = auth_driver.find_element(By.TAG_NAME, "body")
-        tiene_error = (
-            len(auth_driver.find_elements(By.CSS_SELECTOR, ".text-red-600")) > 0
-            or "Error" in body.text
-            or "error" in body.text.lower()
-            or "requerido" in body.text.lower()
-            or "required" in body.text.lower()
-        )
-        # O bien el modal sigue abierto (no guardó)
+        body_text = body.text
+
+        # Con validación frontend: el ErrorBanner (.text-red-600) debe aparecer
+        # Y el modal debe seguir abierto (input[name='nombre'] presente)
+        error_banner_visible = len(auth_driver.find_elements(
+            By.CSS_SELECTOR, ".text-red-600")) > 0
         modal_sigue_abierto = len(auth_driver.find_elements(
             By.CSS_SELECTOR, "input[name='nombre']")) > 0
+        hay_mensaje_error = (
+            "obligatorio" in body_text.lower()
+            or "requerido" in body_text.lower()
+            or "error" in body_text.lower()
+            or "zona" in body_text.lower()
+        )
 
-        assert tiene_error or modal_sigue_abierto, \
-            "Guardar sin nombre debe mostrar error O mantener el modal abierto"
+        assert modal_sigue_abierto, (
+            f"El modal debe permanecer abierto al guardar con nombre vacío.\n"
+            f"Body text (500 chars): {body_text[:500]}"
+        )
+        assert error_banner_visible or hay_mensaje_error, (
+            f"Debe mostrarse un error cuando nombre está vacío.\n"
+            f"ErrorBanner visible: {error_banner_visible}, "
+            f"Mensaje de error: {hay_mensaje_error}\n"
+            f"Body text (500 chars): {body_text[:500]}"
+        )
 
 
 # ══════════════════════════════════════════════════════════════════════════════

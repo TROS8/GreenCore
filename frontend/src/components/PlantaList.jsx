@@ -65,6 +65,23 @@ export function PlantaList() {
 
   const handleSave = async () => {
     setSaving(true); setError(null)
+    // Validación frontend — evita llamadas al backend con datos claramente inválidos
+    // y garantiza que el modal permanezca abierto con un mensaje de error visible.
+    if (!form.nombre?.trim()) {
+      setError(t('planta.nombre') + ' es obligatorio.')
+      setSaving(false)
+      return
+    }
+    if (!form.lote?.trim()) {
+      setError(t('planta.lote') + ' es obligatorio.')
+      setSaving(false)
+      return
+    }
+    if (!form.zonaId) {
+      setError('Debe seleccionar una zona.')
+      setSaving(false)
+      return
+    }
     try {
       // Garantizar tipos correctos para Jackson:
       //   - cantidad/precio: Selenium send_keys() deja strings ("10","45"); los
